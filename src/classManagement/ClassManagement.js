@@ -1,54 +1,65 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 import ClassCard from './ClassCard'
-import { useState } from 'react'
+import { useState, useEffect  } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { getData, storeData } from '../Utility'
 
 export default function ClassManagement() {
   const Separator = () => <View style={{ height: 10 }} />;
+  const [classes, setClasses] = useState([]);
+  
+  useEffect(() => {
+    // Hàm này sẽ chạy ngay khi màn hình được tải
+    const fetchData = async () => {
+      try {
+        const testValue = await AsyncStorage.getItem('test');
+        const accessToken = await AsyncStorage.getItem('accessToken');
+        console.log('test:', testValue);
+        console.log('Access token:', accessToken);
+      } catch (error) {
+        console.error('Error retrieving data from AsyncStorage:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const classes = [
-    {
-      "id": 1,
-      "courseCode": "123456",
-      "subject": "Nhap mon tin hoc dai cuong",
-      "description": "Lớp IT1 - K65 sáng thứ 2",
-      "teacher": null,
-      "createdAt": "2024-04-05T16:05:22.395507Z",
-      "updatedAt": "2024-04-05T16:05:22.395507Z",
-      "isActive": true
-    },
-    {
-      "id": 2,
-      "courseCode": "256984",
-      "subject": "Kien truc may tinh",
-      "description": "Lớp IT1 - K65 sáng thứ 3",
-      "teacher": null,
-      "createdAt": "2024-04-05T16:05:22.395507Z",
-      "updatedAt": "2024-04-05T16:05:22.395507Z",
-      "isActive": true
-    },
-    {
-      "id": 3,
-      "courseCode": "159648",
-      "subject": "Co so du lieu",
-      "description": "Lớp IT1 - K65 sáng thứ 4",
-      "teacher": null,
-      "createdAt": "2024-04-05T16:05:22.395507Z",
-      "updatedAt": "2024-04-05T16:05:22.395507Z",
-      "isActive": true
-    }
-  ]
+  // const classes = [
+  //   {
+  //     "id": 1,
+  //     "courseCode": "123456",
+  //     "subject": "Nhap mon tin hoc dai cuong",
+  //     "description": "Lớp IT1 - K65 sáng thứ 2",
+  //     "teacher": null,
+  //     "createdAt": "2024-04-05T16:05:22.395507Z",
+  //     "updatedAt": "2024-04-05T16:05:22.395507Z",
+  //     "isActive": true
+  //   },
+  //   {
+  //     "id": 2,
+  //     "courseCode": "256984",
+  //     "subject": "Kien truc may tinh",
+  //     "description": "Lớp IT1 - K65 sáng thứ 3",
+  //     "teacher": null,
+  //     "createdAt": "2024-04-05T16:05:22.395507Z",
+  //     "updatedAt": "2024-04-05T16:05:22.395507Z",
+  //     "isActive": true
+  //   },
+  //   {
+  //     "id": 3,
+  //     "courseCode": "159648",
+  //     "subject": "Co so du lieu",
+  //     "description": "Lớp IT1 - K65 sáng thứ 4",
+  //     "teacher": null,
+  //     "createdAt": "2024-04-05T16:05:22.395507Z",
+  //     "updatedAt": "2024-04-05T16:05:22.395507Z",
+  //     "isActive": true
+  //   }
+  // ]
   const addCourse = async () => {
     console.log('Thêm lớp pressed');
-    try {
-      const testValue = await AsyncStorage.getItem('test');
-      const accessToken = await AsyncStorage.getItem('accessToken');
-      console.log('test:', testValue);
-      console.log('Access token:', accessToken);
-    } catch (error) {
-      console.error('Error retrieving data from AsyncStorage:', error);
-    }
+    console.log(await getData('test'));
+    console.log(await getData('accessToken'))
   }
 
   return (

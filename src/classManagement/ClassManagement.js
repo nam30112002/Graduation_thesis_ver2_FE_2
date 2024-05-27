@@ -2,6 +2,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native
 import React from 'react'
 import ClassCard from './ClassCard'
 import { useState } from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function ClassManagement() {
   const Separator = () => <View style={{ height: 10 }} />;
@@ -38,10 +39,22 @@ export default function ClassManagement() {
       "isActive": true
     }
   ]
+  const addCourse = async () => {
+    console.log('Thêm lớp pressed');
+    try {
+      const testValue = await AsyncStorage.getItem('test');
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      console.log('test:', testValue);
+      console.log('Access token:', accessToken);
+    } catch (error) {
+      console.error('Error retrieving data from AsyncStorage:', error);
+    }
+  }
+
   return (
     <>
       <View style={styles.activeBar}>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log('Thêm lớp pressed')}>
+        <TouchableOpacity style={styles.addButton} onPress={() => addCourse()}>
           <Text style={styles.addButtonText}>Thêm lớp</Text>
         </TouchableOpacity>
       </View>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { TextInput, TouchableOpacity, View, Text, KeyboardAvoidingView, StyleSheet } from 'react-native'
+import { storeData, getData } from './Utility';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginPage({ navigation }) {
@@ -21,7 +22,6 @@ export default function LoginPage({ navigation }) {
       body: urlencoded,
       redirect: "follow"
     };
-    console.log('1: ' + urlencoded);
     fetch(`http://192.168.0.105:9000/realms/nam30112002/protocol/openid-connect/token`, requestOptions)
       .then((response) => {
         if (!response.ok) {
@@ -30,26 +30,29 @@ export default function LoginPage({ navigation }) {
         }
         return response.json();
       })
-      .then((data) => {
-        const accessToken = data.access_token; // Assuming access_token is a property in the response
-        if (!accessToken) {
+      .then(async (data) => {
+        console.log('Data:', data.access_token);
+        console.log(typeof(data.access_token));
+        if (!data.access_token) {
           console.error('Missing access token in response');
           throw new Error('Missing access token');
         }
         try {
-          AsyncStorage.setItem('accessToken', accessToken);
-          console.log('Access token stored in AsyncStorage');
-        } catch (error) {
-          console.error('Error storing access token:', error);
+          await AsyncStorage.setItem('test', '1');
+        } catch (e) {
+          // saving error
+          console.error('error: ' + e);
         }
-        console.log('2: Access token:', AsyncStorage.getItem('accessToken')); // Only log for debugging purposes
-
+        await AsyncStorage.setItem('accessToken', data.access_token);
+        await console.log('da luu xong');
+        await navigation.navigate('Main');
+      })
+      .then(() => {
         // Navigate to Main page only if access token is valid
-        navigation.navigate('Main', { accessToken }); // Pass access token as a navigation param
+        navigation.navigate('Main');
       })
       .catch((error) => {
-        console.error('3:', error); // Log the error for debugging
-        // Handle errors gracefully, e.g., display an error message to the user
+        console.error(error);
       });
   }
   return (

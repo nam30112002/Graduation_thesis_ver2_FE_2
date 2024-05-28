@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { TextInput, TouchableOpacity, View, Text, KeyboardAvoidingView, StyleSheet } from 'react-native'
 import { storeData, getData } from './Utility';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {HOST} from '@env'; 
 
 export default function LoginPage({ navigation }) {
   const [username, setUsername] = useState();
@@ -22,8 +23,9 @@ export default function LoginPage({ navigation }) {
       body: urlencoded,
       redirect: "follow"
     };
-    fetch(`http://192.168.0.105:9000/realms/nam30112002/protocol/openid-connect/token`, requestOptions)
+    fetch(`${HOST}:9000/realms/nam30112002/protocol/openid-connect/token`, requestOptions)
       .then((response) => {
+        console.log('status:', response.status);
         if (!response.ok) {
           console.error('Error:', response.statusText);
           throw new Error('Tên đăng nhập hoặc mật khẩu không đúng');

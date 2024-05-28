@@ -1,26 +1,35 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 import ClassCard from './ClassCard'
-import { useState, useEffect  } from 'react'
+import { useState, useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getData, storeData } from '../Utility'
+import { API_URL } from '@env';
 
 export default function ClassManagement() {
   const Separator = () => <View style={{ height: 10 }} />;
   const [classes, setClasses] = useState([]);
-  
+
   useEffect(() => {
-    // Hàm này sẽ chạy ngay khi màn hình được tải
     const fetchData = async () => {
-      try {
-        const testValue = await AsyncStorage.getItem('test');
-        const accessToken = await AsyncStorage.getItem('accessToken');
-        console.log('test:', testValue);
-        console.log('Access token:', accessToken);
-      } catch (error) {
-        console.error('Error retrieving data from AsyncStorage:', error);
-      }
+      const myHeaders = new Headers();
+      myHeaders.append("Authorization", "Bearer " + await getData('accessToken'));
+
+      const requestOptions = {
+        method: "GET",
+        headers: myHeaders,
+        redirect: "follow"
+      };
+
+      fetch(`${API_URL}/teacher/get-my-courses`, requestOptions)
+        .then((response) => {
+          console.log("Response status:", response.status);
+          return response.text();
+        })
+        .then((result) => console.log(result))
+        .catch((error) => console.error(error));
     };
+    console.log('fetching data');
     fetchData();
   }, []);
 
@@ -85,43 +94,39 @@ export default function ClassManagement() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: '#66FF99',
-    },
-    text1: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        position: 'absolute'
-    },
-    classList: {
-        flex: 10,
-        width: "100%",
-        padding: 15
-    },
-    activeBar: {
-        backgroundColor: '#66FF99',
-        flex: 1,
-        flexDirection: 'row', // Ensure items are in a row
-        justifyContent: 'center', // Center items horizontally
-        alignItems: 'center', // Center items vertically
-    },
-    addButton: {
-        backgroundColor: '#007BFF',
-        padding: 10,
-        borderRadius: 5,
-        borderRadius: 10,
-        width: '50%',
-        alignItems: 'center',
-    },
-    addButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-    },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: '#66FF99',
+  },
+  text1: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    position: 'absolute'
+  },
+  classList: {
+    flex: 10,
+    width: "100%",
+    padding: 15
+  },
+  activeBar: {
+    backgroundColor: '#66FF99',
+    flex: 1,
+    flexDirection: 'row', // Ensure items are in a row
+    justifyContent: 'center', // Center items horizontally
+    alignItems: 'center', // Center items vertically
+  },
+  addButton: {
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 5,
+    borderRadius: 10,
+    width: '50%',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
 });
-
-
-
-

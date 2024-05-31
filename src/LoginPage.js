@@ -25,6 +25,7 @@ export default function LoginPage({ navigation }) {
     };
     fetch(`${HOST}:9000/realms/nam30112002/protocol/openid-connect/token`, requestOptions)
       .then((response) => {
+        console.log('is fetching');
         console.log('status:', response.status);
         if (!response.ok) {
           console.error('Error:', response.statusText);
@@ -42,11 +43,10 @@ export default function LoginPage({ navigation }) {
         try {
           await AsyncStorage.setItem('test', '1');
         } catch (e) {
-          // saving error
           console.error('error: ' + e);
         }
         await AsyncStorage.setItem('accessToken', data.access_token);
-        await console.log('da luu xong');
+        console.log('da luu xong');
         await navigation.navigate('Main');
       })
       .then(() => {

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getData, storeData } from '../Utility'
 import { API_URL } from '@env';
+import axios from 'axios';
 
 export default function ClassManagement() {
   const Separator = () => <View style={{ height: 10 }} />;
@@ -12,59 +13,29 @@ export default function ClassManagement() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const myHeaders = new Headers();
-      myHeaders.append("Authorization", "Bearer " + await getData('accessToken'));
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `${API_URL}/teacher/get-my-courses`,
+      headers: {
+        'Authorization': 'Bearer ' + await getData('accessToken')
+      }
+    };
 
-      const requestOptions = {
-        method: "GET",
-        headers: myHeaders,
-        redirect: "follow"
-      };
-
-      fetch(`${API_URL}/teacher/get-my-courses`, requestOptions)
-        .then((response) => {
-          console.log("Response status:", response.status);
-          return response.text();
-        })
-        .then((result) => console.log(result))
-        .catch((error) => console.error(error));
+    axios.request(config)
+    .then((response) => {
+      console.log(response.data);
+      setClasses(response.data);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
     };
     console.log('fetching data');
     fetchData();
+    console.log('done fetching data');
   }, []);
 
-  // const classes = [
-  //   {
-  //     "id": 1,
-  //     "courseCode": "123456",
-  //     "subject": "Nhap mon tin hoc dai cuong",
-  //     "description": "Lớp IT1 - K65 sáng thứ 2",
-  //     "teacher": null,
-  //     "createdAt": "2024-04-05T16:05:22.395507Z",
-  //     "updatedAt": "2024-04-05T16:05:22.395507Z",
-  //     "isActive": true
-  //   },
-  //   {
-  //     "id": 2,
-  //     "courseCode": "256984",
-  //     "subject": "Kien truc may tinh",
-  //     "description": "Lớp IT1 - K65 sáng thứ 3",
-  //     "teacher": null,
-  //     "createdAt": "2024-04-05T16:05:22.395507Z",
-  //     "updatedAt": "2024-04-05T16:05:22.395507Z",
-  //     "isActive": true
-  //   },
-  //   {
-  //     "id": 3,
-  //     "courseCode": "159648",
-  //     "subject": "Co so du lieu",
-  //     "description": "Lớp IT1 - K65 sáng thứ 4",
-  //     "teacher": null,
-  //     "createdAt": "2024-04-05T16:05:22.395507Z",
-  //     "updatedAt": "2024-04-05T16:05:22.395507Z",
-  //     "isActive": true
-  //   }
-  // ]
   const addCourse = async () => {
     console.log('Thêm lớp pressed');
     console.log(await getData('test'));
@@ -130,3 +101,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+
+// const classes = [
+  //   {
+  //     "id": 1,
+  //     "courseCode": "123456",
+  //     "subject": "Nhap mon tin hoc dai cuong",
+  //     "description": "Lớp IT1 - K65 sáng thứ 2",
+  //     "teacher": null,
+  //     "createdAt": "2024-04-05T16:05:22.395507Z",
+  //     "updatedAt": "2024-04-05T16:05:22.395507Z",
+  //     "isActive": true
+  //   },
+  //   {
+  //     "id": 2,
+  //     "courseCode": "256984",
+  //     "subject": "Kien truc may tinh",
+  //     "description": "Lớp IT1 - K65 sáng thứ 3",
+  //     "teacher": null,
+  //     "createdAt": "2024-04-05T16:05:22.395507Z",
+  //     "updatedAt": "2024-04-05T16:05:22.395507Z",
+  //     "isActive": true
+  //   },
+  //   {
+  //     "id": 3,
+  //     "courseCode": "159648",
+  //     "subject": "Co so du lieu",
+  //     "description": "Lớp IT1 - K65 sáng thứ 4",
+  //     "teacher": null,
+  //     "createdAt": "2024-04-05T16:05:22.395507Z",
+  //     "updatedAt": "2024-04-05T16:05:22.395507Z",
+  //     "isActive": true
+  //   }
+  // ]

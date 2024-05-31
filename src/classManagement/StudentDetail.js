@@ -1,77 +1,52 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
+import { useState, useEffect } from 'react'
+import { getData } from '../Utility'
+import axios from 'axios'
+import { API_URL } from '@env'
 
 export default function StudentDetail() {
   const Separator = () => {
     return <View style={{ height: 10 }} />; // Adjust height for spacing
   };
-  const studentLogs =
-    [
-      {
-        "id": 7,
-        "student": null,
-        "course": null,
-        "attendanceTime": "2024-05-05T09:38:00Z",
-        "lectureNumber": 6,
-        "isAttendance": true
-      },
-      {
-        "id": 8,
-        "student": null,
-        "course": null,
-        "attendanceTime": "2024-05-06T09:38:00Z",
-        "lectureNumber": 6,
-        "isAttendance": false
-      },
-      {
-        "id": 9,
-        "student": null,
-        "course": null,
-        "attendanceTime": "2024-05-07T09:38:00Z",
-        "lectureNumber": 6,
-        "isAttendance": true
-      },
-      {
-        "id": 10,
-        "student": null,
-        "course": null,
-        "attendanceTime": "2024-05-08T09:38:00Z",
-        "lectureNumber": 6,
-        "isAttendance": false
-      },
-      {
-        "id": 11,
-        "student": null,
-        "course": null,
-        "attendanceTime": "2024-05-10T09:38:00Z",
-        "lectureNumber": 6,
-        "isAttendance": false
-      },
-      {
-        "id": 12,
-        "student": null,
-        "course": null,
-        "attendanceTime": "2024-05-14T09:38:00Z",
-        "lectureNumber": 6,
-        "isAttendance": false
-      },
-      {
-        "id": 13,
-        "student": null,
-        "course": null,
-        "attendanceTime": "2024-05-14T09:38:00Z",
-        "lectureNumber": 6,
-        "isAttendance": false
-      },
-      {
-        "id": 14,
-        "student": null,
-        "course": null,
-        "attendanceTime": "2024-05-15T09:38:00Z",
-        "lectureNumber": 6,
-        "isAttendance": false
-      }
-    ]
+  const [studentLogs, setStudentLogs] = useState([]);
+  const [studentCode, setStudentCode] = useState();
+  const [studentName, setStudentName] = useState();
+  const [studentNumberOfAbsent, setStudentNumberOfAbsent] = useState();
+  const [studentNumberOfPresent, setStudentNumberOfPresent] = useState();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log('alo ' + await getData('currentStudentId'));
+      setStudentCode(await getData('currentStudentCode'));
+      setStudentName(await getData('currentStudentName'));
+      setStudentNumberOfAbsent(await getData('currentStudentNumberOfAbsent'));
+      setStudentNumberOfPresent(await getData('currentStudentNumberOfPresent'));
+      let currentClassId = await getData('currentClassId');
+      let currentStudentId = await getData('currentStudentId');
+      let config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: `${API_URL}/teacher/get-all-attendance-of-student-of-course?courseId=${currentClassId}&studentId=${currentStudentId}`,
+        headers: {
+          'Authorization': 'Bearer ' + await getData('accessToken')
+        }
+      };
+
+      axios.request(config)
+        .then((response) => {
+          console.log(response.data);
+          setStudentLogs(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    };
+    console.log('fetching data');
+    fetchData();
+    console.log('done fetching data');
+  }, []);
+
   return (
     <>
       <View style={styles.activeBar}>
@@ -88,19 +63,19 @@ export default function StudentDetail() {
         <View style={styles.card}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Mã sinh viên:</Text>
-            <Text style={styles.infoValue}>123456</Text>
+            <Text style={styles.infoValue}>{studentCode}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Họ và tên:</Text>
-            <Text style={styles.infoValue}>Nguyễn Văn A</Text>
+            <Text style={styles.infoValue}>{studentName}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Số buổi vắng:</Text>
-            <Text style={styles.infoValue}>3</Text>
+            <Text style={styles.infoValue}>{studentNumberOfAbsent}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Số buổi đi:</Text>
-            <Text style={styles.infoValue}>5</Text>
+            <Text style={styles.infoValue}>{studentNumberOfPresent}</Text>
           </View>
         </View>
         <View style={styles.containerHeader}>
@@ -205,3 +180,72 @@ const styles = StyleSheet.create({
     fontSize: 15,
 },
 });
+
+
+ // const studentLogs =
+  //   [
+  //     {
+  //       "id": 7,
+  //       "student": null,
+  //       "course": null,
+  //       "attendanceTime": "2024-05-05T09:38:00Z",
+  //       "lectureNumber": 6,
+  //       "isAttendance": true
+  //     },
+  //     {
+  //       "id": 8,
+  //       "student": null,
+  //       "course": null,
+  //       "attendanceTime": "2024-05-06T09:38:00Z",
+  //       "lectureNumber": 6,
+  //       "isAttendance": false
+  //     },
+  //     {
+  //       "id": 9,
+  //       "student": null,
+  //       "course": null,
+  //       "attendanceTime": "2024-05-07T09:38:00Z",
+  //       "lectureNumber": 6,
+  //       "isAttendance": true
+  //     },
+  //     {
+  //       "id": 10,
+  //       "student": null,
+  //       "course": null,
+  //       "attendanceTime": "2024-05-08T09:38:00Z",
+  //       "lectureNumber": 6,
+  //       "isAttendance": false
+  //     },
+  //     {
+  //       "id": 11,
+  //       "student": null,
+  //       "course": null,
+  //       "attendanceTime": "2024-05-10T09:38:00Z",
+  //       "lectureNumber": 6,
+  //       "isAttendance": false
+  //     },
+  //     {
+  //       "id": 12,
+  //       "student": null,
+  //       "course": null,
+  //       "attendanceTime": "2024-05-14T09:38:00Z",
+  //       "lectureNumber": 6,
+  //       "isAttendance": false
+  //     },
+  //     {
+  //       "id": 13,
+  //       "student": null,
+  //       "course": null,
+  //       "attendanceTime": "2024-05-14T09:38:00Z",
+  //       "lectureNumber": 6,
+  //       "isAttendance": false
+  //     },
+  //     {
+  //       "id": 14,
+  //       "student": null,
+  //       "course": null,
+  //       "attendanceTime": "2024-05-15T09:38:00Z",
+  //       "lectureNumber": 6,
+  //       "isAttendance": false
+  //     }
+  //   ]

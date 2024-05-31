@@ -1,12 +1,19 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 import { useNavigation } from '@react-navigation/native'
+import { getData, storeData } from '../Utility'
 
 export default function StudentCard(props) {
   const { student } = props
   const navigation = useNavigation()
-  const onPress = () => {
+  const onPress = async () => {
     console.log(`You pressed ${student.studentCode}`)
+    await storeData('currentStudentId', student.id.toString())
+    await storeData('currentStudentCode', student.studentCode)
+    await storeData('currentStudentName', student.name)
+    await storeData('currentStudentNumberOfAbsent', student.numberOfAbsent.toString())
+    await storeData('currentStudentNumberOfPresent', student.numberOfPresent.toString())
+    console.log('currentStudentId: ' + await getData('currentStudentId'))
     navigation.navigate('StudentDetail', { studentCode: student.studentCode })
   }
   return (

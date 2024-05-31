@@ -21,7 +21,6 @@ export default function ClassManagement() {
         'Authorization': 'Bearer ' + await getData('accessToken')
       }
     };
-
     axios.request(config)
     .then((response) => {
       console.log(response.data);

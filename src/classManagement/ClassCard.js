@@ -1,12 +1,14 @@
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 import { useNavigation } from '@react-navigation/native';
+import { getData, storeData } from '../Utility';
 
 export default function ClassCard(props) {
   const navigation = useNavigation();
   const { classInfo } = props;
-  const onPress = () => {
+  const onPress = async () => {
     console.log(`You pressed ${classInfo.courseCode}`)
+    await storeData('currentClassId', classInfo.id.toString());
     navigation.navigate('ClassDetail', { classInfo: classInfo })
   }
   return (

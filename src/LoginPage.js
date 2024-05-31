@@ -23,6 +23,7 @@ export default function LoginPage({ navigation }) {
       body: urlencoded,
       redirect: "follow"
     };
+    console.log(`${HOST}:9000/realms/nam30112002/protocol/openid-connect/token`);
     fetch(`${HOST}:9000/realms/nam30112002/protocol/openid-connect/token`, requestOptions)
       .then((response) => {
         console.log('is fetching');

@@ -1,47 +1,50 @@
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
-import React from 'react'
-import { useState, useEffect } from 'react'
-import { getData } from '../Utility'
-import axios from 'axios'
-import { API_URL } from '@env'
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { getData } from '../Utility';
+import axios from 'axios';
+import { API_URL } from '@env';
+import AttendanceFormModal from './forms/AttendanceFormModal';
 
 export default function StudentDetail() {
   const Separator = () => {
     return <View style={{ height: 10 }} />; // Adjust height for spacing
   };
+
   const [studentLogs, setStudentLogs] = useState([]);
   const [studentCode, setStudentCode] = useState();
   const [studentName, setStudentName] = useState();
   const [studentNumberOfAbsent, setStudentNumberOfAbsent] = useState();
   const [studentNumberOfPresent, setStudentNumberOfPresent] = useState();
+  const [modalVisible, setModalVisible] = useState(false); // State to control modal visibility
+
+  const fetchData = async () => {
+    console.log('alo ' + await getData('currentStudentId'));
+    setStudentCode(await getData('currentStudentCode'));
+    setStudentName(await getData('currentStudentName'));
+    setStudentNumberOfAbsent(await getData('currentStudentNumberOfAbsent'));
+    setStudentNumberOfPresent(await getData('currentStudentNumberOfPresent'));
+    let currentClassId = await getData('currentClassId');
+    let currentStudentId = await getData('currentStudentId');
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `${API_URL}/teacher/get-all-attendance-of-student-of-course?courseId=${currentClassId}&studentId=${currentStudentId}`,
+      headers: {
+        'Authorization': 'Bearer ' + await getData('accessToken')
+      }
+    };
+
+    axios.request(config)
+      .then((response) => {
+        console.log(response.data);
+        setStudentLogs(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      console.log('alo ' + await getData('currentStudentId'));
-      setStudentCode(await getData('currentStudentCode'));
-      setStudentName(await getData('currentStudentName'));
-      setStudentNumberOfAbsent(await getData('currentStudentNumberOfAbsent'));
-      setStudentNumberOfPresent(await getData('currentStudentNumberOfPresent'));
-      let currentClassId = await getData('currentClassId');
-      let currentStudentId = await getData('currentStudentId');
-      let config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: `${API_URL}/teacher/get-all-attendance-of-student-of-course?courseId=${currentClassId}&studentId=${currentStudentId}`,
-        headers: {
-          'Authorization': 'Bearer ' + await getData('accessToken')
-        }
-      };
-
-      axios.request(config)
-        .then((response) => {
-          console.log(response.data);
-          setStudentLogs(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    };
     console.log('fetching data');
     fetchData();
     console.log('done fetching data');
@@ -51,10 +54,10 @@ export default function StudentDetail() {
     <>
       <View style={styles.activeBar}>
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Sửa thông tin lớp pressed')}>
+          <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.addButtonText}>Tạo buổi điểm danh</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Chụp ảnh điểm danh pressed')}>
+          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Xóa sinh viên khỏi lớp pressed')}>
             <Text style={styles.addButtonText}>Xóa sinh viên khỏi lớp</Text>
           </TouchableOpacity>
         </View>
@@ -101,15 +104,19 @@ export default function StudentDetail() {
               </View>
             </View>
           )}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.id.toString()}
           contentContainerStyle={{ padding: 20 }}
           ItemSeparatorComponent={Separator}
         />
       </View>
+      <AttendanceFormModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSubmit={fetchData} // Refresh the data when a new attendance session is created
+      />
     </>
-  )
+  );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -117,7 +124,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#66FF99',
   },
-  card : {
+  card: {
     backgroundColor: '#fff',
     borderRadius: 10, // Add border radius for rounded corners
     padding: 15, // Add padding for spacing between content and edges
@@ -148,7 +155,7 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 16,
   },
-  test1 : {
+  test1: {
     backgroundColor: '#99FFFF',
     flex: 11,
   },
@@ -178,74 +185,5 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#FFFFFF',
     fontSize: 15,
-},
+  },
 });
-
-
- // const studentLogs =
-  //   [
-  //     {
-  //       "id": 7,
-  //       "student": null,
-  //       "course": null,
-  //       "attendanceTime": "2024-05-05T09:38:00Z",
-  //       "lectureNumber": 6,
-  //       "isAttendance": true
-  //     },
-  //     {
-  //       "id": 8,
-  //       "student": null,
-  //       "course": null,
-  //       "attendanceTime": "2024-05-06T09:38:00Z",
-  //       "lectureNumber": 6,
-  //       "isAttendance": false
-  //     },
-  //     {
-  //       "id": 9,
-  //       "student": null,
-  //       "course": null,
-  //       "attendanceTime": "2024-05-07T09:38:00Z",
-  //       "lectureNumber": 6,
-  //       "isAttendance": true
-  //     },
-  //     {
-  //       "id": 10,
-  //       "student": null,
-  //       "course": null,
-  //       "attendanceTime": "2024-05-08T09:38:00Z",
-  //       "lectureNumber": 6,
-  //       "isAttendance": false
-  //     },
-  //     {
-  //       "id": 11,
-  //       "student": null,
-  //       "course": null,
-  //       "attendanceTime": "2024-05-10T09:38:00Z",
-  //       "lectureNumber": 6,
-  //       "isAttendance": false
-  //     },
-  //     {
-  //       "id": 12,
-  //       "student": null,
-  //       "course": null,
-  //       "attendanceTime": "2024-05-14T09:38:00Z",
-  //       "lectureNumber": 6,
-  //       "isAttendance": false
-  //     },
-  //     {
-  //       "id": 13,
-  //       "student": null,
-  //       "course": null,
-  //       "attendanceTime": "2024-05-14T09:38:00Z",
-  //       "lectureNumber": 6,
-  //       "isAttendance": false
-  //     },
-  //     {
-  //       "id": 14,
-  //       "student": null,
-  //       "course": null,
-  //       "attendanceTime": "2024-05-15T09:38:00Z",
-  //       "lectureNumber": 6,
-  //       "isAttendance": false
-  //     }
-  //   ]

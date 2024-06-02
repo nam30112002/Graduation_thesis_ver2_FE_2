@@ -1,51 +1,55 @@
-import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 
-export default function AddClassModal({ visible, onClose, onSubmit }) {
+export default function EditClassModal({ visible, onClose, onSubmit, currentCourseCode, currentSubject, currentDescription }) {
   const [courseCode, setCourseCode] = useState('');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
 
-  const handleAddClass = () => {
-    //check null value
-    if (courseCode === '' || subject === '') {
-      alert('Vui lòng nhập đầy đủ thông tin mã lớp và môn học');
-      return;
+  useEffect(() => {
+    if (visible) {
+      setCourseCode(currentCourseCode ?? '');
+      setSubject(currentSubject ?? '');
+      setDescription(currentDescription ?? '');
     }
-    onSubmit( courseCode, subject, description );
-    setCourseCode('');
-    setSubject('');
-    setDescription('');
-    alert('Thêm lớp thành công');
-    onClose();
+  }, [visible, currentCourseCode, currentSubject, currentDescription]);
+
+  const handleSave = () => {
+    onSubmit(courseCode, subject, description);
+    onClose(); // Close the modal after saving
   };
 
   return (
-    <Modal visible={visible} transparent={true} animationType="slide">
+    <Modal
+      transparent={true}
+      animationType="slide"
+      visible={visible}
+      onRequestClose={onClose}
+    >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Thêm lớp</Text>
+          <Text style={styles.modalTitle}>Sửa Lớp</Text>
           <TextInput
             style={styles.input}
-            placeholder="Mã lớp"
+            placeholder="Mã Lớp"
             value={courseCode}
             onChangeText={setCourseCode}
           />
           <TextInput
             style={styles.input}
-            placeholder="Môn học"
+            placeholder="Môn Học"
             value={subject}
             onChangeText={setSubject}
           />
           <TextInput
             style={styles.input}
-            placeholder="Mô tả"
+            placeholder="Mô Tả"
             value={description}
             onChangeText={setDescription}
           />
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={handleAddClass}>
-              <Text style={styles.buttonText}>Xác nhận</Text>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.button} onPress={handleSave}>
+              <Text style={styles.buttonText}>Lưu</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
               <Text style={styles.buttonText}>Hủy</Text>
@@ -65,39 +69,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: 300,
-    padding: 20,
+    width: '80%',
     backgroundColor: 'white',
+    padding: 20,
     borderRadius: 10,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: 'center',
   },
   input: {
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
+    marginBottom: 10,
+    paddingLeft: 8,
     borderRadius: 5,
-    marginBottom: 15,
-    paddingLeft: 10,
   },
-  buttonContainer: {
+  buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
   },
   button: {
     backgroundColor: '#007BFF',
     padding: 10,
     borderRadius: 5,
-    flex: 1,
+    minWidth: '40%',
     alignItems: 'center',
-    marginHorizontal: 5,
   },
   cancelButton: {
-    backgroundColor: '#FF0000',
+    backgroundColor: '#FF3B30',
   },
   buttonText: {
     color: 'white',

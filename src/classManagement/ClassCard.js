@@ -9,6 +9,10 @@ export default function ClassCard(props) {
   const onPress = async () => {
     console.log(`You pressed ${classInfo.courseCode}`)
     await storeData('currentClassId', classInfo.id.toString());
+    await storeData('currentClassCode', classInfo.courseCode);
+    console.log(`ClassCard currentClassCode: ${classInfo.courseCode}`);
+    await storeData('currentClassSubject', classInfo.subject);
+    await storeData('currentClassDescription', classInfo.description ?? '');
     navigation.navigate('ClassDetail', { classInfo: classInfo })
   }
   return (

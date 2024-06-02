@@ -1,20 +1,29 @@
-import { FlatList, Text, View, TouchableOpacity, StyleSheet } from 'react-native'
-import React from 'react'
-import StudentCard from './StudentCard'
-import { useState, useEffect } from 'react'
+import { FlatList, Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import StudentCard from './StudentCard';
 import { API_URL } from '@env';
 import axios from 'axios';
 import { getData } from '../Utility';
+import EditClassModal from './forms/EditClassModal';
+import { useNavigation } from '@react-navigation/native';
+import ConfirmDeleteModal from './forms/ConfirmDeleteModal';
+
 
 export default function ClassDetail() {
-
   const Separator = () => <View style={{ height: 10 }} />;
+  const navigation = useNavigation();  
   const [studentList, setStudentList] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [courseCode, setCourseCode] = useState('');
+  const [subject, setSubject] = useState('');
+  const [description, setDescription] = useState('');
 
-  const courseCode = "123123"
   useEffect(() => {
     const fetchData = async () => {
-      console.log('alo ' + await getData('currentClassId'));
+      setCourseCode(await getData('currentClassCode'));
+      setSubject(await getData('currentClassSubject'));
+      setDescription(await getData('currentClassDescription'));
       let currentClassId = await getData('currentClassId');
       let config = {
         method: 'get',
@@ -27,55 +36,130 @@ export default function ClassDetail() {
 
       axios.request(config)
         .then((response) => {
-          console.log(response.data);
           setStudentList(response.data);
         })
         .catch((error) => {
           console.log(error);
         });
     };
-    console.log('fetching data');
+
     fetchData();
-    console.log('done fetching data');
   }, []);
 
-  return (<>
-    <View style={styles.activeBar}>
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log('Sửa thông tin lớp pressed')}>
-          <Text style={styles.addButtonText}>Tạo form điểm danh</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log('Chụp ảnh điểm danh pressed')}>
-          <Text style={styles.addButtonText}>Chụp ảnh điểm danh</Text>
-        </TouchableOpacity>
+  const handleEditClass = async (courseCode, subject, description) => {
+    console.log('Class Edited:', { courseCode, subject, description });
+
+    let data = JSON.stringify({
+      "courseCode": courseCode,
+      "subject": subject,
+      "description": description
+    });
+
+    let config = {
+      method: 'put',
+      maxBodyLength: Infinity,
+      url: `${API_URL}/teacher/update-course?courseId=${await getData('currentClassId')}`,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + await getData('accessToken')
+      },
+      data: data
+    };
+    console.log('data: ' + data)
+
+    axios.request(config)
+      .then((response) => {
+        console.log('Updating');
+        console.log(response.data);
+        console.log(response.status);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    console.log('Updated');
+    setModalVisible(false);
+  };
+
+  const handleDeleteClass = async () => {
+    let currentClassId = await getData('currentClassId');
+    let config = {
+      method: 'delete',
+      url: `${API_URL}/teacher/delete-course?courseId=${currentClassId}`,
+      headers: {
+        'Authorization': 'Bearer ' + await getData('accessToken')
+      }
+    };
+
+    axios.request(config)
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    setDeleteModalVisible(false);
+    navigation.navigate('ClassManagement');
+  };
+
+  const clickUpdateClass = () => {
+    setModalVisible(true);
+  }
+
+  const clickDeleteClass = () => {
+    setDeleteModalVisible(true);
+  }
+
+  return (
+    <>
+      <View style={styles.activeBar}>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Tạo form điểm danh pressed')}>
+            <Text style={styles.addButtonText}>Tạo form điểm danh</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Chụp ảnh điểm danh pressed')}>
+            <Text style={styles.addButtonText}>Chụp ảnh điểm danh</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.addButton} onPress={() => clickUpdateClass()}>
+            <Text style={styles.addButtonText}>Sửa lớp</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton} onPress={() => clickDeleteClass()}>
+            <Text style={styles.addButtonText}>Xóa lớp</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Thêm sinh viên pressed')}>
+            <Text style={styles.addButtonText}>Thêm sinh viên</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log('Sửa lớp pressed')}>
-          <Text style={styles.addButtonText}>Sửa lớp</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log('Xóa lớp pressed')}>
-          <Text style={styles.addButtonText}>Xóa lớp</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log('Thêm sinh viên pressed')}>
-          <Text style={styles.addButtonText}>Thêm sinh viên</Text>
-        </TouchableOpacity>
+      <View style={[styles.container]}>
+        <Text style={styles.text1}>Danh sách sinh viên lớp {courseCode}</Text>
       </View>
-    </View>
-    <View style={[styles.container]}>
-      <Text style={styles.text1}>Danh sách sinh viên lớp {courseCode}</Text>
-    </View>
-    <View style={[styles.studentList]}>
-      <FlatList
-        data={studentList}
-        renderItem={({ item }) => (
-          <StudentCard student={item} />
-        )}
-        keyExtractor={item => item.id.toString()}
-        ItemSeparatorComponent={Separator}
+      <View style={[styles.studentList]}>
+        <FlatList
+          data={studentList}
+          renderItem={({ item }) => (
+            <StudentCard student={item} />
+          )}
+          keyExtractor={item => item.id.toString()}
+          ItemSeparatorComponent={Separator}
+        />
+      </View>
+      <EditClassModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSubmit={handleEditClass}
+        currentCourseCode={courseCode}
+        currentSubject={subject}
+        currentDescription={description}
       />
-    </View>
-  </>
-  )
+      <ConfirmDeleteModal
+        visible={deleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        onConfirm={handleDeleteClass}
+      />
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -99,11 +183,11 @@ const styles = StyleSheet.create({
   activeBar: {
     flex: 2,
     flexDirection: 'row',
-    flexWrap: 'wrap', // Allow wrapping to multiple lines if needed
-    justifyContent: 'space-around', // Distribute buttons evenly
-    alignItems: 'center', // Center the buttons vertically
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    alignItems: 'center',
     backgroundColor: '#66FF99',
-    padding: 10, // Add some padding for better spacing
+    padding: 10,
   },
   addButton: {
     backgroundColor: '#007BFF',
@@ -124,50 +208,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-
-
-
-
-  // const studentList = [
-  //   {
-  //     "id": 22,
-  //     "studentCode": "ST202411",
-  //     "name": "nam",
-  //     "courseCode": "123123",
-  //     "numberOfAbsent": 0,
-  //     "numberOfPresent": 10
-  //   },
-  //   {
-  //     "id": 23,
-  //     "studentCode": "ST202412",
-  //     "name": "Hung",
-  //     "courseCode": "123123",
-  //     "numberOfAbsent": 1,
-  //     "numberOfPresent": 9
-  //   },
-  //   {
-  //     "id": 24,
-  //     "studentCode": "ST202413",
-  //     "name": "Tuan",
-  //     "courseCode": "123123",
-  //     "numberOfAbsent": 2,
-  //     "numberOfPresent": 8
-  //   },
-  //   {
-  //     "id": 25,
-  //     "studentCode": "ST202414",
-  //     "name": "Long",
-  //     "courseCode": "123123",
-  //     "numberOfAbsent": 0,
-  //     "numberOfPresent": 10
-  //   },
-  //   {
-  //     "id": 26,
-  //     "studentCode": "ST202415",
-  //     "name": "Minh",
-  //     "courseCode": "123123",
-  //     "numberOfAbsent": 0,
-  //     "numberOfPresent": 10
-  //   },
-  // ]

@@ -3,11 +3,10 @@ import React, { useState, useEffect } from 'react';
 import StudentCard from './StudentCard';
 import { API_URL } from '@env';
 import axios from 'axios';
-import { getData } from '../Utility';
+import { getData, storeData } from '../Utility';
 import EditClassModal from './forms/EditClassModal';
 import { useNavigation } from '@react-navigation/native';
 import ConfirmDeleteModal from './forms/ConfirmDeleteModal';
-
 
 export default function ClassDetail() {
   const Separator = () => <View style={{ height: 10 }} />;
@@ -19,30 +18,30 @@ export default function ClassDetail() {
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setCourseCode(await getData('currentClassCode'));
-      setSubject(await getData('currentClassSubject'));
-      setDescription(await getData('currentClassDescription'));
-      let currentClassId = await getData('currentClassId');
-      let config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: `${API_URL}/teacher/get-all-student-of-course?courseId=${currentClassId}`,
-        headers: {
-          'Authorization': 'Bearer ' + await getData('accessToken')
-        }
-      };
-
-      axios.request(config)
-        .then((response) => {
-          setStudentList(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+  const fetchData = async () => {
+    setCourseCode(await getData('currentClassCode'));
+    setSubject(await getData('currentClassSubject'));
+    setDescription(await getData('currentClassDescription'));
+    let currentClassId = await getData('currentClassId');
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `${API_URL}/teacher/get-all-student-of-course?courseId=${currentClassId}`,
+      headers: {
+        'Authorization': 'Bearer ' + await getData('accessToken')
+      }
     };
 
+    axios.request(config)
+      .then((response) => {
+        setStudentList(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -72,6 +71,12 @@ export default function ClassDetail() {
         console.log('Updating');
         console.log(response.data);
         console.log(response.status);
+        if (response.status === 200){
+          storeData('currentClassCode', courseCode);
+          storeData('currentClassSubject', subject);
+          storeData('currentClassDescription', description);
+          fetchData(); // Reload the class details after editing
+        }
       })
       .catch((error) => {
         console.log(error);

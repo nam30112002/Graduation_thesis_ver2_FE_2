@@ -1,42 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import axios from 'axios';
 import { API_URL } from '@env';
 import ClassCard from './ClassCard';
 import AddClassModal from './forms/AddClassModal';
 import { getData } from '../Utility';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function ClassManagement() {
   const [classes, setClasses] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      let config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: `${API_URL}/teacher/get-my-courses`,
-        headers: {
-          'Authorization': 'Bearer ' + await getData('accessToken')
-        }
-      };
-      axios.request(config)
-        .then((response) => {
-          setClasses(response.data);
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+  const fetchData = async () => {
+    let config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `${API_URL}/teacher/get-my-courses`,
+      headers: {
+        'Authorization': 'Bearer ' + await getData('accessToken')
+      }
     };
+    axios.request(config)
+      .then((response) => {
+        setClasses(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   const addCourse = () => {
     setModalVisible(true);
   };
 
-  const handleAddClass = async ( courseCode, subject, description ) => {
+  const handleAddClass = async (courseCode, subject, description) => {
     let data = JSON.stringify({
       "courseCode": courseCode,
       "subject": subject,
@@ -58,6 +65,7 @@ export default function ClassManagement() {
       .then((response) => {
         console.log(JSON.stringify(response.data));
         console.log(response.status);
+        fetchData(); // Reload the class list after adding a new class
       })
       .catch((error) => {
         console.log(error);

@@ -4,6 +4,7 @@ import { getData } from '../Utility';
 import axios from 'axios';
 import { API_URL } from '@env';
 import AttendanceFormModal from './forms/AttendanceFormModal';
+import { convertTime, formatToView } from '../Utility';
 
 export default function StudentDetail() {
   const Separator = () => {
@@ -92,7 +93,7 @@ export default function StudentDetail() {
             <View style={styles.card}>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Thời gian điểm danh:</Text>
-                <Text style={styles.infoValue}>{item.attendanceTime}</Text>
+                <Text style={styles.infoValue}>{formatToView(convertTime(item.attendanceTime))}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Buổi học số:</Text>

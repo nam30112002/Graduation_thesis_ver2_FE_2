@@ -7,16 +7,18 @@ import { getData, storeData } from '../Utility';
 import EditClassModal from './forms/EditClassModal';
 import { useNavigation } from '@react-navigation/native';
 import ConfirmDeleteModal from './forms/ConfirmDeleteModal';
+import  AddStudentModal  from './forms/AddStudentModal';
 
 export default function ClassDetail() {
   const Separator = () => <View style={{ height: 10 }} />;
-  const navigation = useNavigation();  
+  const navigation = useNavigation();
   const [studentList, setStudentList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [courseCode, setCourseCode] = useState('');
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [isAddStudentModalVisible, setAddStudentModalVisible] = useState(false);
 
   const fetchData = async () => {
     setCourseCode(await getData('currentClassCode'));
@@ -71,7 +73,7 @@ export default function ClassDetail() {
         console.log('Updating');
         console.log(response.data);
         console.log(response.status);
-        if (response.status === 200){
+        if (response.status === 200) {
           storeData('currentClassCode', courseCode);
           storeData('currentClassSubject', subject);
           storeData('currentClassDescription', description);
@@ -106,12 +108,20 @@ export default function ClassDetail() {
     navigation.navigate('ClassManagement');
   };
 
+  const handleAddStudent = async (studentId) => {
+    setAddStudentModalVisible(false);
+    fetchData();
+  };
+
   const clickUpdateClass = () => {
     setModalVisible(true);
   }
 
   const clickDeleteClass = () => {
     setDeleteModalVisible(true);
+  }
+  const clickAddStudent = () => {
+    setAddStudentModalVisible(true);
   }
 
   return (
@@ -132,7 +142,7 @@ export default function ClassDetail() {
           <TouchableOpacity style={styles.addButton} onPress={() => clickDeleteClass()}>
             <Text style={styles.addButtonText}>Xóa lớp</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Thêm sinh viên pressed')}>
+          <TouchableOpacity style={styles.addButton} onPress={() => clickAddStudent()}>
             <Text style={styles.addButtonText}>Thêm sinh viên</Text>
           </TouchableOpacity>
         </View>
@@ -162,6 +172,11 @@ export default function ClassDetail() {
         visible={deleteModalVisible}
         onClose={() => setDeleteModalVisible(false)}
         onConfirm={handleDeleteClass}
+      />
+      <AddStudentModal
+        visible={isAddStudentModalVisible}
+        onClose={() => setAddStudentModalVisible(false)}
+        onSubmit={handleAddStudent}
       />
     </>
   );

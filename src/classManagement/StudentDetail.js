@@ -1,25 +1,25 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useNavigation } from 'react';
 import { getData } from '../Utility';
 import axios from 'axios';
 import { API_URL } from '@env';
 import AttendanceFormModal from './forms/AttendanceFormModal';
 import { convertTime, formatToView } from '../Utility';
+import ConfirmDeleteStudentModal from './forms/ConfirmDeleteStudentModal'; // Import the new modal
 
 export default function StudentDetail() {
-  const Separator = () => {
-    return <View style={{ height: 10 }} />; // Adjust height for spacing
-  };
+  const Separator = () => <View style={{ height: 10 }} />;
+  const navigation = useNavigation();
 
   const [studentLogs, setStudentLogs] = useState([]);
   const [studentCode, setStudentCode] = useState();
   const [studentName, setStudentName] = useState();
   const [studentNumberOfAbsent, setStudentNumberOfAbsent] = useState();
   const [studentNumberOfPresent, setStudentNumberOfPresent] = useState();
-  const [modalVisible, setModalVisible] = useState(false); // State to control modal visibility
+  const [modalVisible, setModalVisible] = useState(false); 
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false); // State to control delete confirmation modal visibility
 
   const fetchData = async () => {
-    console.log('alo ' + await getData('currentStudentId'));
     setStudentCode(await getData('currentStudentCode'));
     setStudentName(await getData('currentStudentName'));
     setStudentNumberOfAbsent(await getData('currentStudentNumberOfAbsent'));
@@ -37,7 +37,6 @@ export default function StudentDetail() {
 
     axios.request(config)
       .then((response) => {
-        console.log(response.data);
         setStudentLogs(response.data);
       })
       .catch((error) => {
@@ -46,10 +45,30 @@ export default function StudentDetail() {
   };
 
   useEffect(() => {
-    console.log('fetching data');
     fetchData();
-    console.log('done fetching data');
   }, []);
+
+  const handleDeleteStudent = async () => {
+    let currentClassId = await getData('currentClassId');
+    let currentStudentId = await getData('currentStudentId');
+    let config = {
+      method: 'delete',
+      url: `${API_URL}/teacher/delete-student-from-course?courseId=${currentClassId}&studentId=${currentStudentId}`,
+      headers: {
+        'Authorization': 'Bearer ' + await getData('accessToken')
+      }
+    };
+
+    axios.request(config)
+      .then((response) => {
+        console.log(response.data);
+        setDeleteModalVisible(false);
+        navigation.navigate('ClassDetail');
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   return (
     <>
@@ -58,7 +77,7 @@ export default function StudentDetail() {
           <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.addButtonText}>Tạo buổi điểm danh</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Xóa sinh viên khỏi lớp pressed')}>
+          <TouchableOpacity style={styles.addButton} onPress={() => setDeleteModalVisible(true)}>
             <Text style={styles.addButtonText}>Xóa sinh viên khỏi lớp</Text>
           </TouchableOpacity>
         </View>
@@ -115,6 +134,11 @@ export default function StudentDetail() {
         onClose={() => setModalVisible(false)}
         onSubmit={fetchData} // Refresh the data when a new attendance session is created
       />
+      <ConfirmDeleteStudentModal
+        visible={deleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        onConfirm={handleDeleteStudent}
+      />
     </>
   );
 }
@@ -127,13 +151,13 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 10, // Add border radius for rounded corners
-    padding: 15, // Add padding for spacing between content and edges
+    borderRadius: 10,
+    padding: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5, // Add shadow effect
+    elevation: 5,
   },
   header: {
     fontSize: 20,
@@ -163,11 +187,11 @@ const styles = StyleSheet.create({
   activeBar: {
     flex: 1.25,
     flexDirection: 'row',
-    flexWrap: 'wrap', // Allow wrapping to multiple lines if needed
-    justifyContent: 'space-around', // Distribute buttons evenly
-    alignItems: 'center', // Center the buttons vertically
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    alignItems: 'center',
     backgroundColor: '#66FF99',
-    padding: 10, // Add some padding for better spacing
+    padding: 10,
   },
   addButton: {
     backgroundColor: '#007BFF',

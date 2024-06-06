@@ -1,13 +1,14 @@
-import { FlatList, Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { FlatList, Text, View, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import StudentCard from './StudentCard';
 import { API_URL } from '@env';
 import axios from 'axios';
 import { getData, storeData } from '../Utility';
 import EditClassModal from './forms/EditClassModal';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect  } from '@react-navigation/native';
 import ConfirmDeleteModal from './forms/ConfirmDeleteModal';
 import  AddStudentModal  from './forms/AddStudentModal';
+import AddFormModal from './forms/AddFormModal';
 
 export default function ClassDetail() {
   const Separator = () => <View style={{ height: 10 }} />;
@@ -19,6 +20,7 @@ export default function ClassDetail() {
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [isAddStudentModalVisible, setAddStudentModalVisible] = useState(false);
+  const [isAddFormModalVisible, setAddFormModalVisible] = useState(false);
 
   const fetchData = async () => {
     setCourseCode(await getData('currentClassCode'));
@@ -46,6 +48,11 @@ export default function ClassDetail() {
   useEffect(() => {
     fetchData();
   }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   const handleEditClass = async (courseCode, subject, description) => {
     console.log('Class Edited:', { courseCode, subject, description });
@@ -84,6 +91,7 @@ export default function ClassDetail() {
         console.log(error);
       });
     console.log('Updated');
+    Alert.alert('Lớp học đã được cập nhật');
     setModalVisible(false);
   };
 
@@ -106,11 +114,17 @@ export default function ClassDetail() {
       });
     setDeleteModalVisible(false);
     navigation.navigate('ClassManagement');
+    Alert.alert(`Lớp học ${await getData('currentClassCode')} đã được xóa`);
   };
 
   const handleAddStudent = async (studentId) => {
     setAddStudentModalVisible(false);
     fetchData();
+  };
+  const handleCreateForm = ({ expiryTime, question, answer }) => {
+    console.log('Form Created:', { expiryTime, question, answer });
+    // Add your form creation logic here
+    setAddFormModalVisible(false);
   };
 
   const clickUpdateClass = () => {
@@ -123,12 +137,16 @@ export default function ClassDetail() {
   const clickAddStudent = () => {
     setAddStudentModalVisible(true);
   }
+  const clickCreateForm = () => {
+    navigation.navigate('AddFormScreen');
+  }
+
 
   return (
     <>
       <View style={styles.activeBar}>
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Tạo form điểm danh pressed')}>
+          <TouchableOpacity style={styles.addButton} onPress={() => clickCreateForm()}>
             <Text style={styles.addButtonText}>Tạo form điểm danh</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.addButton} onPress={() => console.log('Chụp ảnh điểm danh pressed')}>
@@ -177,6 +195,11 @@ export default function ClassDetail() {
         visible={isAddStudentModalVisible}
         onClose={() => setAddStudentModalVisible(false)}
         onSubmit={handleAddStudent}
+      />
+      <AddFormModal
+        visible={isAddFormModalVisible}
+        onClose={() => setAddFormModalVisible(false)}
+        onSubmit={handleCreateForm}
       />
     </>
   );

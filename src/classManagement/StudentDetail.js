@@ -1,5 +1,7 @@
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useState, useEffect, useNavigation } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+
 import { getData } from '../Utility';
 import axios from 'axios';
 import { API_URL } from '@env';
@@ -60,10 +62,11 @@ export default function StudentDetail() {
     };
 
     axios.request(config)
-      .then((response) => {
+      .then(async (response) => {
         console.log(response.data);
         setDeleteModalVisible(false);
         navigation.navigate('ClassDetail');
+        Alert.alert(`Xóa sinh viên ${await getData('currentStudentName')} khỏi lớp thành công`);
       })
       .catch((error) => {
         console.log(error);

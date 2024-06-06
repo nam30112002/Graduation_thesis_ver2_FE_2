@@ -6,6 +6,7 @@ import ClassDetail from './classManagement/ClassDetail';
 import { createStackNavigator } from '@react-navigation/stack';
 import StudentDetail from './classManagement/StudentDetail';
 import ProfileScreen from './ProfileScreen';
+import AddFormScreen from './classManagement/AddFormScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -21,6 +22,7 @@ const ClassManagementStack = () => {
       <Stack.Screen name="ClassManagement" component={ClassManagement} options={{ headerShown: false }}/>
       <Stack.Screen name="ClassDetail" component={ClassDetail} options={{ headerShown: false }}/>
       <Stack.Screen name="StudentDetail" component={StudentDetail} options={{ headerShown: false }}/>
+      <Stack.Screen name="AddFormScreen" component={AddFormScreen} options={{ headerShown: false }}/>
     </Stack.Navigator>
   );
 };

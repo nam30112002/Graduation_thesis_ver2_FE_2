@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, FlatList, Switch } from 'react-native';
 
 const UpdateQuestionModal = ({ modalVisible, setModalVisible, currentQuestion, setQuestionsList }) => {
-  const [question, setQuestion] = useState(currentQuestion.question);
-  const [answers, setAnswers] = useState(currentQuestion.answers);
+  const [question, setQuestion] = useState('');
+  const [answers, setAnswers] = useState([]);
+
+  useEffect(() => {
+    setQuestion(currentQuestion.question);
+    setAnswers(currentQuestion.answers);
+  }, [currentQuestion]);
 
   const addAnswer = () => {
     setAnswers([...answers, { text: '', correct: false }]);
@@ -46,31 +51,30 @@ const UpdateQuestionModal = ({ modalVisible, setModalVisible, currentQuestion, s
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Cập nhật câu hỏi</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Câu hỏi"
-            value={question}
-            onChangeText={setQuestion}
-          />
-          <FlatList
-            data={answers}
-            renderItem={({ item, index }) => (
-              <View key={index} style={styles.answerItemContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Câu trả lời"
-                  value={item.text}
-                  onChangeText={(text) => updateAnswer(index, text)}
-                />
-                <TouchableOpacity onPress={() => toggleCorrectness(index)}>
-                  <Text style={item.correct ? styles.correctText : styles.incorrectText}>
-                    {item.correct ? 'Đúng' : 'Sai'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            keyExtractor={(item, index) => index.toString()}
-          />
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Câu hỏi</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nhập câu hỏi"
+              value={question}
+              onChangeText={setQuestion}
+            />
+          </View>
+          <Text style={styles.inputLabel}>Câu trả lời</Text>
+          {answers.map((answer, index) => (
+            <View style={styles.answerItemContainer}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder={`Câu trả lời ${index + 1}`}
+                value={answer.text}
+                onChangeText={(text) => updateAnswer(index, text)}
+              />
+              <Switch
+                value={answer.correct}
+                onValueChange={() => toggleCorrectness(index)}
+              />
+            </View>
+          ))}
           <TouchableOpacity style={styles.addButton} onPress={addAnswer}>
             <Text style={styles.addButtonText}>Thêm câu trả lời</Text>
           </TouchableOpacity>
@@ -111,13 +115,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 10,
+  },
+  inputLabel: {
+    marginBottom: 5,
+    fontSize: 16,
+  },
   input: {
     width: '100%',
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
-    marginBottom: 10,
   },
   addButton: {
     padding: 10,
@@ -135,14 +146,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 5,
     justifyContent: 'space-between',
-  },
-  correctText: {
-    color: 'green',
-    fontWeight: 'bold',
-  },
-  incorrectText: {
-    color: 'red',
-    fontWeight: 'bold',
+    width: '100%'
   },
   buttonRow: {
     flexDirection: 'row',

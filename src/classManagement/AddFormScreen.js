@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import QuestionModal from './forms/QuestionModal';
 import QuestionCard from './QuestionCard';
+import UpdateQuestionModal from './forms/UpdateQuestionModal';
 
 const AddFormScreen = ({ navigation }) => {
   const [hours, setHours] = useState('');
@@ -11,6 +12,8 @@ const AddFormScreen = ({ navigation }) => {
   const [answers, setAnswers] = useState([]);
   const [questionsList, setQuestionsList] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+
+  const [selectedQuestion, setSelectedQuestion] = useState('');
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
 
 
@@ -40,7 +43,7 @@ const AddFormScreen = ({ navigation }) => {
       <View style={styles.content}>
         <Text style={styles.modalTitle}>Tạo Form Điểm Danh</Text>
         <Text style={styles.label}>Buổi học số</Text>
-        <TextInput style={styles.input} placeholder="Buổi học số" keyboardType="numeric"/>
+        <TextInput style={styles.input} placeholder="Buổi học số" keyboardType="numeric" />
         <View style={styles.expiryTimeContainer}>
           <Text style={styles.label}>Thời gian hết hạn</Text>
           <View style={styles.timeContainer}>
@@ -79,7 +82,9 @@ const AddFormScreen = ({ navigation }) => {
             <QuestionCard
               questionInfo={item}
               onPress={() => {
+                setSelectedQuestion(item); // Lưu thông tin câu hỏi được chọn
                 setUpdateModalVisible(true);
+                console.log('Selected question:', item);
               }}
               toggleCorrectness={(answerIndex) => toggleCorrectness(index, answerIndex)}
             />
@@ -106,7 +111,13 @@ const AddFormScreen = ({ navigation }) => {
         setAnswers={setAnswers}
         handleAddQuestion={handleAddQuestion}
       />
-      
+
+      <UpdateQuestionModal
+        modalVisible={updateModalVisible}
+        setModalVisible={setUpdateModalVisible}
+        currentQuestion={selectedQuestion}
+        setQuestionsList={setQuestionsList}
+      />
     </View>
   );
 };

@@ -6,8 +6,10 @@ const UpdateQuestionModal = ({ modalVisible, setModalVisible, currentQuestion, s
   const [answers, setAnswers] = useState([]);
 
   useEffect(() => {
-    setQuestion(currentQuestion.question);
-    setAnswers(currentQuestion.answers);
+    if (currentQuestion) {
+      setQuestion(currentQuestion.question || '');
+      setAnswers(currentQuestion.answers || []);
+    }
   }, [currentQuestion]);
 
   const addAnswer = () => {
@@ -61,8 +63,8 @@ const UpdateQuestionModal = ({ modalVisible, setModalVisible, currentQuestion, s
             />
           </View>
           <Text style={styles.inputLabel}>Câu trả lời</Text>
-          {answers.map((answer, index) => (
-            <View style={styles.answerItemContainer}>
+          {answers && Array.isArray(answers) && answers.map((answer, index) => (
+            <View style={styles.answerItemContainer} key={index}>
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder={`Câu trả lời ${index + 1}`}

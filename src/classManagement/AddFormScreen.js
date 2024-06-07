@@ -19,7 +19,8 @@ const AddFormScreen = ({ navigation }) => {
 
   const handleAddQuestion = () => {
     if (question.trim() !== '') {
-      setQuestionsList([...questionsList, { question, answers }]);
+      const newQuestion = { id: new Date().getTime(), question, answers }; // Gán id duy nhất
+      setQuestionsList([...questionsList, newQuestion]);
       setQuestion('');
       setAnswers([]);
       setModalVisible(false);
@@ -84,12 +85,11 @@ const AddFormScreen = ({ navigation }) => {
               onPress={() => {
                 setSelectedQuestion(item); // Lưu thông tin câu hỏi được chọn
                 setUpdateModalVisible(true);
-                console.log('Selected question:', item);
               }}
               toggleCorrectness={(answerIndex) => toggleCorrectness(index, answerIndex)}
             />
           )}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item) => item.id.toString()} // Sử dụng id làm key
           style={styles.questionsList}
         />
       </View>

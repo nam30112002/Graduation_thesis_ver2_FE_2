@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import QuestionModal from './forms/QuestionModal';
 import QuestionCard from './QuestionCard';
 import UpdateQuestionModal from './forms/UpdateQuestionModal';
+import { getData } from '../Utility';
 
 const AddFormScreen = ({ navigation }) => {
-  const [hours, setHours] = useState('');
-  const [minutes, setMinutes] = useState('');
-  const [seconds, setSeconds] = useState('');
+  const [hours, setHours] = useState('0');
+  const [minutes, setMinutes] = useState('5');
   const [question, setQuestion] = useState('');
   const [answers, setAnswers] = useState([]);
   const [questionsList, setQuestionsList] = useState([]);
@@ -15,9 +15,28 @@ const AddFormScreen = ({ navigation }) => {
 
   const [selectedQuestion, setSelectedQuestion] = useState('');
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
+  const [courseCode, setCourseCode] = useState('');
+  const [sessionNumber, setSessionNumber] = useState(''); // Trạng thái cho "Buổi học số"
 
+  useEffect(() => {
+    setCourseCode(getData('currentClassCode'));
+  }, []);
+
+  const hasCorrectAnswer = (answers) => {
+    return answers.some(answer => answer.correct);
+  };
 
   const handleAddQuestion = () => {
+    if (question.trim() === '') {
+      alert('Vui lòng nhập câu hỏi.');
+      return;
+    }
+
+    if (answers.length === 0 || !hasCorrectAnswer(answers)) {
+      alert('Vui lòng nhập ít nhất một câu trả lời đúng.');
+      return;
+    }
+
     if (question.trim() !== '') {
       const newQuestion = { id: new Date().getTime(), question, answers }; // Gán id duy nhất
       setQuestionsList([...questionsList, newQuestion]);
@@ -28,9 +47,22 @@ const AddFormScreen = ({ navigation }) => {
   };
 
   const handleSubmit = () => {
-    const expiryTime = `${hours}:${minutes}:${seconds}`;
-    // Add your form creation logic here, or pass it back to the previous screen
-    navigation.goBack(); // Navigate back after form creation
+    // Kiểm tra nếu "Buổi học số" không được nhập
+    if (sessionNumber.trim() === '') {
+      alert('Vui lòng nhập buổi học số ...');
+      return;
+    }
+
+    // Kiểm tra nếu không có câu hỏi nào được thêm vào
+    if (questionsList.length === 0) {
+      alert('Vui lòng thêm ít nhất một câu hỏi!');
+      return;
+    }
+
+    const expiryTime = `${hours}:${minutes}`;
+    // Thực hiện logic để tạo form ở đây
+
+    navigation.goBack();
   };
 
   const toggleCorrectness = (questionIndex, answerIndex) => {
@@ -42,12 +74,20 @@ const AddFormScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.modalTitle}>Tạo Form Điểm Danh</Text>
-        <Text style={styles.label}>Buổi học số</Text>
-        <TextInput style={styles.input} placeholder="Buổi học số" keyboardType="numeric" />
+        <Text style={styles.modalTitle}>Tạo Form Điểm Danh Lớp {courseCode}</Text>
+        <View style={styles.sessionNumberContainer}>
+          <Text style={styles.label}>Buổi học số</Text>
+          <TextInput
+            style={[styles.input, styles.sessionNumberInput]}
+            placeholder="Buổi học số"
+            keyboardType="numeric"
+            value={sessionNumber}
+            onChangeText={setSessionNumber}
+          />
+        </View>
         <View style={styles.expiryTimeContainer}>
           <Text style={styles.label}>Thời gian hết hạn</Text>
-          <View style={styles.timeContainer}>
+          <View style={styles.timeInputContainer}>
             <TextInput
               style={styles.timeInput}
               placeholder="Giờ"
@@ -55,6 +95,9 @@ const AddFormScreen = ({ navigation }) => {
               onChangeText={setHours}
               keyboardType="numeric"
             />
+            <Text style={styles.timeLabel}>Giờ</Text>
+          </View>
+          <View style={styles.timeInputContainer}>
             <TextInput
               style={styles.timeInput}
               placeholder="Phút"
@@ -62,14 +105,9 @@ const AddFormScreen = ({ navigation }) => {
               onChangeText={setMinutes}
               keyboardType="numeric"
             />
-            <TextInput
-              style={styles.timeInput}
-              placeholder="Giây"
-              value={seconds}
-              onChangeText={setSeconds}
-              keyboardType="numeric"
-            />
+            <Text style={styles.timeLabel}>Phút</Text>
           </View>
+          
         </View>
         <View style={styles.questionHeader}>
           <Text style={styles.label}>Danh sách câu hỏi</Text>
@@ -137,24 +175,36 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  expiryTimeContainer: {
-    width: '100%',
+  sessionNumberContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Căn giữa text và input
+    alignItems: 'center', // Căn giữa dọc theo hàng
     marginBottom: 20,
   },
-  label: {
-    marginBottom: 10,
-    fontSize: 18,
-  },
-  timeContainer: {
+  expiryTimeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  
+  label: {
+    fontSize: 18,
+  },
+  timeInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   timeInput: {
-    width: '30%',
+    width: 50,
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
+    marginRight: 5,
+  },
+  timeLabel: {
+    fontSize: 16,
   },
   questionHeader: {
     flexDirection: 'row',
@@ -167,12 +217,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    width: '100%',
     padding: 15,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
-    marginBottom: 15,
+    flex: 1, // Để input mở rộng trong sessionNumberContainer
   },
   addButton: {
     padding: 10,
@@ -219,5 +268,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF0000',
   },
 });
+
 
 export default AddFormScreen;

@@ -5,8 +5,6 @@ const QuestionModal = ({ modalVisible, setModalVisible, question, setQuestion, a
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [isCorrect, setIsCorrect] = useState(false);
 
-  
-
   const addAnswer = () => {
     if (currentAnswer.trim() !== '') {
       setAnswers([...answers, { text: currentAnswer, correct: isCorrect }]);

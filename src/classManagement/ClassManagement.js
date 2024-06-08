@@ -80,7 +80,7 @@ export default function ClassManagement() {
         </TouchableOpacity>
       </View>
       <View style={styles.container}>
-        <Text style={styles.text1}>Các lớp quản lí</Text>
+        <Text style={styles.text1}>Các lớp của bạn</Text>
       </View>
       <View style={styles.classList}>
         <FlatList
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#66FF99',
+    backgroundColor: '#ECF0F1',
   },
   text1: {
     fontSize: 24,
@@ -117,14 +117,14 @@ const styles = StyleSheet.create({
     padding: 15
   },
   activeBar: {
-    backgroundColor: '#66FF99',
+    backgroundColor: '#ECF0F1',
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
   addButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#34568B',
     padding: 10,
     borderRadius: 10,
     width: '50%',

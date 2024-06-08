@@ -1,6 +1,7 @@
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/FontAwesome'; // Import the icon library
 
 import { getData } from '../Utility';
 import axios from 'axios';
@@ -18,7 +19,7 @@ export default function StudentDetail() {
   const [studentName, setStudentName] = useState();
   const [studentNumberOfAbsent, setStudentNumberOfAbsent] = useState();
   const [studentNumberOfPresent, setStudentNumberOfPresent] = useState();
-  const [modalVisible, setModalVisible] = useState(false); 
+  const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false); // State to control delete confirmation modal visibility
 
   const fetchData = async () => {
@@ -73,18 +74,46 @@ export default function StudentDetail() {
       });
   };
 
+  // New function to handle attendance deletion
+  const handleDeleteAttendance = async (attendanceId) => {
+    Alert.alert(
+      'Xác nhận xóa',
+      'Bạn có chắc chắn muốn xóa buổi điểm danh này không?',
+      [
+        {
+          text: 'Hủy',
+          onPress: () => console.log('Xóa bị hủy'),
+          style: 'cancel',
+        },
+        {
+          text: 'Xóa',
+          onPress: async () => {
+            let config = {
+              method: 'delete',
+              url: `${API_URL}/teacher/delete-attendance?attendanceId=${attendanceId}`,
+              headers: {
+                'Authorization': 'Bearer ' + await getData('accessToken')
+              }
+            };
+
+            axios.request(config)
+              .then((response) => {
+                console.log(response.data);
+                fetchData(); // Refresh the list after deletion
+              })
+              .catch((error) => {
+                console.log(error);
+              });
+          },
+          style: 'destructive'
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <>
-      <View style={styles.activeBar}>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
-            <Text style={styles.addButtonText}>Tạo buổi điểm danh</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={() => setDeleteModalVisible(true)}>
-            <Text style={styles.addButtonText}>Xóa sinh viên khỏi lớp</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
       <View style={styles.container}>
         <View style={styles.card}>
           <View style={styles.infoRow}>
@@ -104,9 +133,19 @@ export default function StudentDetail() {
             <Text style={styles.infoValue}>{studentNumberOfPresent}</Text>
           </View>
         </View>
-        <View style={styles.containerHeader}>
-          <Text style={styles.header}>Thông tin điểm danh sinh viên</Text>
+      </View>
+      <View style={styles.activeBar}>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+            <Text style={styles.addButtonText}>Tạo buổi điểm danh</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton} onPress={() => setDeleteModalVisible(true)}>
+            <Text style={styles.addButtonText}>Xóa sinh viên khỏi lớp</Text>
+          </TouchableOpacity>
         </View>
+      </View>
+      <View style={styles.containerHeader}>
+        <Text style={styles.header}>Thông tin điểm danh sinh viên</Text>
       </View>
       <View style={styles.test1}>
         <FlatList
@@ -114,8 +153,13 @@ export default function StudentDetail() {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Thời gian điểm danh:</Text>
-                <Text style={styles.infoValue}>{formatToView(convertTime(item.attendanceTime))}</Text>
+                <View>
+                  <Text style={styles.infoLabel}>Thời gian điểm danh:</Text>
+                  <Text style={styles.infoValue}>{formatToView(convertTime(item.attendanceTime))}</Text>
+                </View>
+                <TouchableOpacity onPress={() => handleDeleteAttendance(item.id)}>
+                  <Icon name="trash" size={24} color="#FF0000" />
+                </TouchableOpacity>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Buổi học số:</Text>
@@ -148,9 +192,9 @@ export default function StudentDetail() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 4,
+    flex: 3,
     padding: 20,
-    backgroundColor: '#66FF99',
+    backgroundColor: '#ECF0F1',
   },
   card: {
     backgroundColor: '#fff',
@@ -174,7 +218,8 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 5
+    marginBottom: 5,
+    alignItems: 'center' // Aligns text and icon vertically
   },
   infoLabel: {
     fontSize: 16,
@@ -184,7 +229,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   test1: {
-    backgroundColor: '#99FFFF',
+    backgroundColor: '#ECF0F1',
     flex: 11,
   },
   activeBar: {
@@ -193,11 +238,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#66FF99',
+    backgroundColor: '#ECF0F1',
     padding: 10,
   },
   addButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#34568B',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,

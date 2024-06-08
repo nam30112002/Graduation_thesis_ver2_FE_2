@@ -4,6 +4,8 @@ import QuestionModal from './forms/QuestionModal';
 import QuestionCard from './QuestionCard';
 import UpdateQuestionModal from './forms/UpdateQuestionModal';
 import { getData } from '../Utility';
+import axios from 'axios';
+import { API_URL } from '@env';
 
 const AddFormScreen = ({ navigation }) => {
   const [hours, setHours] = useState('0');
@@ -18,8 +20,50 @@ const AddFormScreen = ({ navigation }) => {
   const [courseCode, setCourseCode] = useState('');
   const [sessionNumber, setSessionNumber] = useState(''); // Trạng thái cho "Buổi học số"
 
+  const inverseQuestionsDTO = (questionsDTO) => {
+    return questionsDTO.map(question => ({
+      question: question.content,
+      answers: question.answers.map(answer => ({
+        text: answer.content,
+        correct: answer.isTrue
+      }))
+    }));
+  };
+
   useEffect(() => {
-    setCourseCode(getData('currentClassCode'));
+    const fetchData = async () => {
+      try {
+        // Gọi API để lấy dữ liệu
+        const response = await axios.get(`${API_URL}/teacher/get-form-by-course?courseId=6`, {
+          headers: {
+            'Authorization': 'Bearer ' + await getData('accessToken'),
+          }
+        });
+        if(response.status != 200) {
+          alert("Không thể lấy dữ liệu từ server!");
+        }else { 
+          setCourseCode(response.data.courseCode);
+          setSessionNumber(response.data.lectureNumber.toString());
+          setHours(Math.floor(response.data.timeOfPeriod / 3600).toString());
+          setMinutes(Math.floor((response.data.timeOfPeriod % 3600) / 60).toString());
+        }
+        // Nếu có dữ liệu trả về từ API, cập nhật state
+        if (response.data.questions) {
+          console.log(response.data.questions);
+          const formattedQuestions = response.data.questions.map(question => {
+            // Generate temporary id for each question if it doesn't have an id
+            if (!question.id) {
+              question.id = new Date().getTime();
+            }
+            return question;
+          });
+          setQuestionsList(inverseQuestionsDTO(formattedQuestions));
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchData(); // Gọi hàm fetchData ngay lập tức
   }, []);
 
   const hasCorrectAnswer = (answers) => {
@@ -44,9 +88,10 @@ const AddFormScreen = ({ navigation }) => {
       setAnswers([]);
       setModalVisible(false);
     }
+    console.log(questionsList);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Kiểm tra nếu "Buổi học số" không được nhập
     if (sessionNumber.trim() === '') {
       alert('Vui lòng nhập buổi học số ...');
@@ -59,10 +104,47 @@ const AddFormScreen = ({ navigation }) => {
       return;
     }
 
-    const expiryTime = `${hours}:${minutes}`;
-    // Thực hiện logic để tạo form ở đây
+    const expiryTime = parseInt(hours) * 3600 + parseInt(minutes) * 60;
 
-    navigation.goBack();
+    const questionsDTO = questionsList.map(question => ({
+      content: question.question,
+      answers: question.answers.map(answer => ({
+        content: answer.text,
+        isTrue: answer.correct
+      }))
+    }));
+
+    // Thực hiện logic để tạo form ở đây
+    let data = JSON.stringify({
+      "lectureNumber": sessionNumber,
+      "timeOfPeriod": expiryTime,
+      "questions": questionsDTO
+    });
+    
+    let config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: `${API_URL}/teacher/create-form?courseId=${await getData('currentClassId')}`,
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Authorization': 'Bearer ' + await getData('accessToken')
+      },
+      data : data
+    };
+    
+    axios.request(config)
+    .then((response) => {
+      console.log(JSON.stringify(response.data));
+      if(response.status === 200) {
+        alert("Tạo form điểm danh thành công!");
+        navigation.goBack();
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+
+    //navigation.goBack();
   };
 
   const toggleCorrectness = (questionIndex, answerIndex) => {
@@ -127,7 +209,7 @@ const AddFormScreen = ({ navigation }) => {
               toggleCorrectness={(answerIndex) => toggleCorrectness(index, answerIndex)}
             />
           )}
-          keyExtractor={(item) => item.id.toString()} // Sử dụng id làm key
+          keyExtractor={(item) => item.id} // Sử dụng id làm key
           style={styles.questionsList}
         />
       </View>

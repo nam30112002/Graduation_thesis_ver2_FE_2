@@ -20,6 +20,7 @@ const UpdateQuestionModal = ({ modalVisible, setModalVisible, currentQuestion, s
     const newAnswers = [...answers];
     newAnswers[index].text = text;
     setAnswers(newAnswers);
+    console.log(answers);
   };
 
   const toggleCorrectness = (index) => {

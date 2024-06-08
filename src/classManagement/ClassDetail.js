@@ -7,7 +7,7 @@ import { getData, storeData } from '../Utility';
 import EditClassModal from './forms/EditClassModal';
 import { useNavigation, useFocusEffect  } from '@react-navigation/native';
 import ConfirmDeleteModal from './forms/ConfirmDeleteModal';
-import  AddStudentModal  from './forms/AddStudentModal';
+import AddStudentModal from './forms/AddStudentModal';
 import AddFormModal from './forms/AddFormModal';
 
 export default function ClassDetail() {
@@ -141,13 +141,17 @@ export default function ClassDetail() {
     navigation.navigate('AddFormScreen');
   }
 
-
   return (
     <>
+    <View style={styles.classInfoContainer}>
+        <Text style={styles.classInfoText}>Mã lớp: {courseCode}</Text>
+        <Text style={styles.classInfoText}>Môn học: {subject}</Text>
+        <Text style={styles.classInfoText}>Mô tả: {description}</Text>
+      </View>
       <View style={styles.activeBar}>
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.addButton} onPress={() => clickCreateForm()}>
-            <Text style={styles.addButtonText}>Tạo form điểm danh</Text>
+            <Text style={styles.addButtonText}>Form điểm danh</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.addButton} onPress={() => console.log('Chụp ảnh điểm danh pressed')}>
             <Text style={styles.addButtonText}>Chụp ảnh điểm danh</Text>
@@ -166,7 +170,7 @@ export default function ClassDetail() {
         </View>
       </View>
       <View style={[styles.container]}>
-        <Text style={styles.text1}>Danh sách sinh viên lớp {courseCode}</Text>
+        <Text style={styles.text1}>Danh sách sinh viên</Text>
       </View>
       <View style={[styles.studentList]}>
         <FlatList
@@ -209,18 +213,20 @@ const styles = StyleSheet.create({
   text1: {
     fontSize: 24,
     fontWeight: 'bold',
-    position: 'absolute'
+    position: 'absolute',
+    color: '#2C3E50', // Màu văn bản tối để dễ đọc
   },
   studentList: {
     flex: 10,
     width: "100%",
-    padding: 15
+    padding: 15,
+    backgroundColor: '#ECF0F1', // Màu nền nhẹ nhàng
   },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#66FF99',
+    backgroundColor: '#ECF0F1', // Màu nền sáng và hài hòa
     flexDirection: 'row',
   },
   activeBar: {
@@ -229,11 +235,13 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#66FF99',
-    padding: 10,
+    backgroundColor: '#ECF0F1', // Màu nền đậm hơn một chút để tạo sự khác biệt
+    //padding: 5, paddingVertical: 10, paddingHorizontal: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 15
   },
   addButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#34568B', // Màu xanh tươi sáng cho nút
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -244,10 +252,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
-    marginVertical: 5,
+    marginVertical: 2,
   },
   addButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+  },
+  classInfoContainer: {
+    backgroundColor: '#FFFFFF',
+    padding: 15,
+    margin: 10,
+    borderRadius: 10,
+    width: '90%',
+    alignSelf: 'center',
+    borderColor: '#BDC3C7', // Viền nhẹ nhàng để tách biệt
+    borderWidth: 1,
+    shadowColor: '#000', // Thêm đổ bóng để nổi bật hơn
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  classInfoText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#2C3E50', // Màu văn bản đậm để dễ đọc
   },
 });

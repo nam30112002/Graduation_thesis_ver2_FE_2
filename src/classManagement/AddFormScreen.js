@@ -18,6 +18,7 @@ const AddFormScreen = ({ navigation }) => {
   const [selectedQuestion, setSelectedQuestion] = useState('');
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [courseCode, setCourseCode] = useState('');
+  const [codeForm, setCodeForm] = useState(''); // Trạng thái cho "Code Form"
   const [sessionNumber, setSessionNumber] = useState(''); // Trạng thái cho "Buổi học số"
 
   const inverseQuestionsDTO = (questionsDTO) => {
@@ -44,6 +45,7 @@ const AddFormScreen = ({ navigation }) => {
         }else { 
           setCourseCode(response.data.courseCode);
           setSessionNumber(response.data.lectureNumber.toString());
+          setCodeForm(response.data.code);
           setHours(Math.floor(response.data.timeOfPeriod / 3600).toString());
           setMinutes(Math.floor((response.data.timeOfPeriod % 3600) / 60).toString());
         }
@@ -136,8 +138,8 @@ const AddFormScreen = ({ navigation }) => {
     .then((response) => {
       console.log(JSON.stringify(response.data));
       if(response.status === 200) {
-        alert("Tạo form điểm danh thành công!");
-        navigation.goBack();
+        alert("Tạo form điểm danh thành công! Code: " + response.data);
+        setCodeForm(response.data);
       }
     })
     .catch((error) => {
@@ -156,7 +158,8 @@ const AddFormScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.modalTitle}>Tạo Form Điểm Danh Lớp {courseCode}</Text>
+        <Text style={styles.modalTitle}>Form Điểm Danh</Text>
+        <Text style={styles.modalTitle1}>Code Form: {codeForm}</Text>
         <View style={styles.sessionNumberContainer}>
           <Text style={styles.label}>Buổi học số</Text>
           <TextInput
@@ -215,10 +218,10 @@ const AddFormScreen = ({ navigation }) => {
       </View>
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Tạo</Text>
+          <Text style={styles.buttonText}>Tạo/Cập nhật</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>Hủy</Text>
+          <Text style={styles.buttonText}>Quay lại</Text>
         </TouchableOpacity>
       </View>
 
@@ -253,6 +256,12 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalTitle1: {
+    fontSize: 15,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',

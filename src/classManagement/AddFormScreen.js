@@ -35,7 +35,7 @@ const AddFormScreen = ({ navigation }) => {
     const fetchData = async () => {
       try {
         // Gọi API để lấy dữ liệu
-        const response = await axios.get(`${API_URL}/teacher/get-form-by-course?courseId=6`, {
+        const response = await axios.get(`${API_URL}/teacher/get-form-by-course?courseId=${await getData('currentClassId')}`, {
           headers: {
             'Authorization': 'Bearer ' + await getData('accessToken'),
           }

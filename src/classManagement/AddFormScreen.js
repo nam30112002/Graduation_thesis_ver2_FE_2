@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert, Platform, PermissionsAndroid, ActivityIndicator } from 'react-native';
+import Geolocation from '@react-native-community/geolocation';
 import QuestionModal from './forms/QuestionModal';
 import QuestionCard from './QuestionCard';
 import UpdateQuestionModal from './forms/UpdateQuestionModal';
@@ -18,8 +19,13 @@ const AddFormScreen = ({ navigation }) => {
   const [selectedQuestion, setSelectedQuestion] = useState('');
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
   const [courseCode, setCourseCode] = useState('');
-  const [codeForm, setCodeForm] = useState(''); // Trạng thái cho "Code Form"
-  const [sessionNumber, setSessionNumber] = useState(''); // Trạng thái cho "Buổi học số"
+  const [codeForm, setCodeForm] = useState('');
+  const [sessionNumber, setSessionNumber] = useState('');
+
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const inverseQuestionsDTO = (questionsDTO) => {
     return questionsDTO.map(question => ({
@@ -34,26 +40,23 @@ const AddFormScreen = ({ navigation }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Gọi API để lấy dữ liệu
         const response = await axios.get(`${API_URL}/teacher/get-form-by-course?courseId=${await getData('currentClassId')}`, {
           headers: {
             'Authorization': 'Bearer ' + await getData('accessToken'),
           }
         });
-        if(response.status != 200) {
+        if (response.status != 200) {
           alert("Không thể lấy dữ liệu từ server!");
-        }else { 
+        } else {
           setCourseCode(response.data.courseCode);
           setSessionNumber(response.data.lectureNumber.toString());
           setCodeForm(response.data.code);
           setHours(Math.floor(response.data.timeOfPeriod / 3600).toString());
           setMinutes(Math.floor((response.data.timeOfPeriod % 3600) / 60).toString());
         }
-        // Nếu có dữ liệu trả về từ API, cập nhật state
         if (response.data.questions) {
           console.log(response.data.questions);
           const formattedQuestions = response.data.questions.map(question => {
-            // Generate temporary id for each question if it doesn't have an id
             if (!question.id) {
               question.id = new Date().getTime();
             }
@@ -65,7 +68,7 @@ const AddFormScreen = ({ navigation }) => {
         console.log(error);
       }
     };
-    fetchData(); // Gọi hàm fetchData ngay lập tức
+    fetchData();
   }, []);
 
   const hasCorrectAnswer = (answers) => {
@@ -84,7 +87,7 @@ const AddFormScreen = ({ navigation }) => {
     }
 
     if (question.trim() !== '') {
-      const newQuestion = { id: new Date().getTime(), question, answers }; // Gán id duy nhất
+      const newQuestion = { id: new Date().getTime(), question, answers };
       setQuestionsList([...questionsList, newQuestion]);
       setQuestion('');
       setAnswers([]);
@@ -94,18 +97,16 @@ const AddFormScreen = ({ navigation }) => {
   };
 
   const handleSubmit = async () => {
-    // Kiểm tra nếu "Buổi học số" không được nhập
     if (sessionNumber.trim() === '') {
       alert('Vui lòng nhập buổi học số ...');
       return;
     }
 
-    // Kiểm tra nếu không có câu hỏi nào được thêm vào
     if (questionsList.length === 0) {
       alert('Vui lòng thêm ít nhất một câu hỏi!');
       return;
     }
-
+    setIsLoading(true);
     const expiryTime = parseInt(hours) * 3600 + parseInt(minutes) * 60;
 
     const questionsDTO = questionsList.map(question => ({
@@ -116,37 +117,82 @@ const AddFormScreen = ({ navigation }) => {
       }))
     }));
 
-    // Thực hiện logic để tạo form ở đây
-    let data = JSON.stringify({
-      "lectureNumber": sessionNumber,
-      "timeOfPeriod": expiryTime,
-      "questions": questionsDTO
-    });
-    
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: `${API_URL}/teacher/create-form?courseId=${await getData('currentClassId')}`,
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': 'Bearer ' + await getData('accessToken')
-      },
-      data : data
+    // Lấy tọa độ hiện tại
+    const getCurrentLocation = () => {
+      return new Promise((resolve, reject) => {
+        Geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+            resolve({ latitude, longitude });
+          },
+          error => {
+            reject(error.message);
+          },
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+        );
+      });
     };
-    
-    axios.request(config)
-    .then((response) => {
-      console.log(JSON.stringify(response.data));
-      if(response.status === 200) {
-        alert("Tạo form điểm danh thành công! Code: " + response.data);
-        setCodeForm(response.data);
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
 
-    //navigation.goBack();
+    try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Yêu cầu quyền truy cập vị trí',
+            message: 'Ứng dụng cần quyền truy cập vị trí để lấy tọa độ địa lý hiện tại.',
+            buttonNeutral: 'Hỏi lại sau',
+            buttonNegative: 'Hủy bỏ',
+            buttonPositive: 'Đồng ý',
+          },
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          alert('Quyền truy cập vị trí bị từ chối.');
+          return;
+        }
+      }
+
+      const location = await getCurrentLocation();
+      setLatitude(location.latitude);
+      setLongitude(location.longitude);
+
+      let data = JSON.stringify({
+        "lectureNumber": sessionNumber,
+        "timeOfPeriod": expiryTime,
+        "questions": questionsDTO,
+        "latitude": location.latitude, // Gửi latitude
+        "longitude": location.longitude // Gửi longitude
+      });
+
+      let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${API_URL}/teacher/create-form?courseId=${await getData('currentClassId')}`,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + await getData('accessToken')
+        },
+        data: data
+      };
+      setIsLoading(false);
+
+      axios.request(config)
+        .then((response) => {
+          console.log(JSON.stringify(response.data));
+          if (response.status === 200) {
+            alert("Tạo form điểm danh thành công! Code: " + response.data);
+            setCodeForm(response.data);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
+    } catch (error) {
+      console.error(error);
+      alert('Lỗi khi lấy vị trí hiện tại. Vui lòng kiểm tra lại quyền truy cập vị trí.');
+      setIsLoading(false);
+    }
+
   };
 
   const toggleCorrectness = (questionIndex, answerIndex) => {
@@ -192,7 +238,7 @@ const AddFormScreen = ({ navigation }) => {
             />
             <Text style={styles.timeLabel}>Phút</Text>
           </View>
-          
+
         </View>
         <View style={styles.questionHeader}>
           <Text style={styles.label}>Danh sách câu hỏi</Text>
@@ -206,13 +252,13 @@ const AddFormScreen = ({ navigation }) => {
             <QuestionCard
               questionInfo={item}
               onPress={() => {
-                setSelectedQuestion(item); // Lưu thông tin câu hỏi được chọn
+                setSelectedQuestion(item);
                 setUpdateModalVisible(true);
               }}
               toggleCorrectness={(answerIndex) => toggleCorrectness(index, answerIndex)}
             />
           )}
-          keyExtractor={(item) => item.id} // Sử dụng id làm key
+          keyExtractor={(item) => item.id}
           style={styles.questionsList}
         />
       </View>
@@ -241,6 +287,12 @@ const AddFormScreen = ({ navigation }) => {
         currentQuestion={selectedQuestion}
         setQuestionsList={setQuestionsList}
       />
+
+      {isLoading ? ( // Render loading indicator if isLoading is true
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007BFF" />
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -268,8 +320,8 @@ const styles = StyleSheet.create({
   },
   sessionNumberContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // Căn giữa text và input
-    alignItems: 'center', // Căn giữa dọc theo hàng
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
   },
   expiryTimeContainer: {
@@ -278,7 +330,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  
+
   label: {
     fontSize: 18,
   },
@@ -312,7 +364,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
-    flex: 1, // Để input mở rộng trong sessionNumberContainer
+    flex: 1,
   },
   addButton: {
     padding: 10,
@@ -358,7 +410,16 @@ const styles = StyleSheet.create({
   cancelButton: {
     backgroundColor: '#FF0000',
   },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
-
 
 export default AddFormScreen;

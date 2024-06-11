@@ -162,6 +162,7 @@ const AddFormScreen = ({ navigation }) => {
         "latitude": location.latitude, // Gửi latitude
         "longitude": location.longitude // Gửi longitude
       });
+      console.log(data);
 
       let config = {
         method: 'post',

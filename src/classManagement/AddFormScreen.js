@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert, Platform, PermissionsAndroid, ActivityIndicator } from 'react-native';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import QuestionModal from './forms/QuestionModal';
 import QuestionCard from './QuestionCard';
 import UpdateQuestionModal from './forms/UpdateQuestionModal';
@@ -193,7 +193,6 @@ const AddFormScreen = ({ navigation }) => {
       alert('Lỗi khi lấy vị trí hiện tại. Vui lòng kiểm tra lại quyền truy cập vị trí.');
       setIsLoading(false);
     }
-
   };
 
   const toggleCorrectness = (questionIndex, answerIndex) => {

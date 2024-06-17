@@ -10,6 +10,8 @@ import ConfirmDeleteModal from './forms/ConfirmDeleteModal';
 import AddStudentModal from './forms/AddStudentModal';
 import AddFormModal from './forms/AddFormModal';
 
+import ImageModal from './forms/ImageModal';
+
 export default function ClassDetail() {
   const Separator = () => <View style={{ height: 10 }} />;
   const navigation = useNavigation();
@@ -21,6 +23,7 @@ export default function ClassDetail() {
   const [description, setDescription] = useState('');
   const [isAddStudentModalVisible, setAddStudentModalVisible] = useState(false);
   const [isAddFormModalVisible, setAddFormModalVisible] = useState(false);
+  const [isCameraModalVisible, setCameraModalVisible] = useState(false);
 
   const fetchData = async () => {
     setCourseCode(await getData('currentClassCode'));
@@ -95,6 +98,13 @@ export default function ClassDetail() {
     setModalVisible(false);
   };
 
+
+  const handlePhotoSubmit = () => {
+    setCameraModalVisible(true);
+
+  };
+
+
   const handleDeleteClass = async () => {
     let currentClassId = await getData('currentClassId');
     let config = {
@@ -141,6 +151,10 @@ export default function ClassDetail() {
     navigation.navigate('AddFormScreen');
   }
 
+  const clickImage = () => {
+    setCameraModalVisible(true);
+  }
+
   return (
     <>
     <View style={styles.classInfoContainer}>
@@ -153,7 +167,7 @@ export default function ClassDetail() {
           <TouchableOpacity style={styles.addButton} onPress={() => clickCreateForm()}>
             <Text style={styles.addButtonText}>Form điểm danh</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={() => console.log('Chụp ảnh điểm danh pressed')}>
+          <TouchableOpacity style={styles.addButton} onPress={() => clickImage()}>
             <Text style={styles.addButtonText}>Chụp ảnh điểm danh</Text>
           </TouchableOpacity>
         </View>
@@ -204,6 +218,11 @@ export default function ClassDetail() {
         visible={isAddFormModalVisible}
         onClose={() => setAddFormModalVisible(false)}
         onSubmit={handleCreateForm}
+      />
+      <ImageModal
+        visible={isCameraModalVisible}
+        onClose={() => setCameraModalVisible(false)}
+        onSubmit={handlePhotoSubmit}
       />
     </>
   );

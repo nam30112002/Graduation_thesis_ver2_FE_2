@@ -3,7 +3,8 @@ import { View, Text, Image, StyleSheet, Modal, TouchableOpacity, FlatList, Alert
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import CheckBox from '@react-native-community/checkbox';
 import axios from 'axios';
-import { HOST } from '@env';
+import { HOST, API_URL } from '@env';
+import { getData } from '../../Utility';
 
 const ImageModal = ({ visible, onClose, studentList }) => {
   const [imageUri, setImageUri] = useState(null);
@@ -55,6 +56,10 @@ const ImageModal = ({ visible, onClose, studentList }) => {
   };
 
   const confirmAttendance = () => {
+    if(lectureNumber === '') {
+      Alert.alert('Vui lòng nhập số buổi học');
+      return;
+    }
     if (imageUri) {
       const formData = new FormData();
       // Add selected students IDs to the form data
@@ -97,14 +102,42 @@ const ImageModal = ({ visible, onClose, studentList }) => {
           Alert.alert('Đã xảy ra lỗi khi điểm danh');
           return;
         });
-
     }
   };
 
-  const handleSaveResult = () => {
+  const handleSaveResult = async () => {
     // Ví dụ, gửi request lưu vào cơ sở dữ liệu
     // Sau khi lưu thành công, có thể đóng modal hoặc hiển thị thông báo lưu thành công
+    const attendanceTime = new Date().toISOString();
     
+    await studentResults.forEach(async (studentResult) => {
+      const data = JSON.stringify({
+        "lectureNumber": lectureNumber,
+        "attendanceTime": attendanceTime,
+        "isAttendance": studentResult.result,
+        "courseId": await getData('currentClassId'),
+        "studentId": studentResult.id
+      });
+      let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: `${API_URL}/teacher/add-attendance`,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + await getData('accessToken')
+        },
+        data: data
+      };
+      axios.request(config)
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        Alert.alert('Đã xảy ra lỗi khi lưu điểm danh');
+      });
+    });
+    Alert.alert('Đã lưu điểm danh thành công');
     setShowSavePrompt(false); // Ẩn thông báo sau khi lưu thành công
   };
 

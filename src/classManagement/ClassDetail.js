@@ -218,6 +218,7 @@ export default function ClassDetail() {
         visible={isCameraModalVisible}
         onClose={() => setCameraModalVisible(false)}
         onSubmit={handlePhotoSubmit}
+        studentList={studentList}
       />
     </>
   );

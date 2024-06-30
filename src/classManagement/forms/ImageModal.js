@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, Modal, TouchableOpacity, FlatList, Alert,TextInput } from 'react-native';
+import { View, Text, Image, StyleSheet, Modal, TouchableOpacity, FlatList, Alert, TextInput, ActivityIndicator } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import CheckBox from '@react-native-community/checkbox';
 import axios from 'axios';
@@ -15,6 +15,7 @@ const ImageModal = ({ visible, onClose, studentList }) => {
   const [showSavePrompt, setShowSavePrompt] = useState(false);
   const [studentResults, setStudentResults] = useState([]);
   const [lectureNumber, setLectureNumber] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -56,7 +57,7 @@ const ImageModal = ({ visible, onClose, studentList }) => {
   };
 
   const confirmAttendance = () => {
-    if(lectureNumber === '') {
+    if (lectureNumber === '') {
       Alert.alert('Vui lòng nhập số buổi học');
       return;
     }
@@ -83,6 +84,7 @@ const ImageModal = ({ visible, onClose, studentList }) => {
         redirect: "follow"
       };
 
+      setIsLoading(true); // Bắt đầu hiển thị loading
       fetch(`${HOST}:8888/attendance`, requestOptions)
         .then((response) => response.json())
         .then((result) => {
@@ -100,14 +102,14 @@ const ImageModal = ({ visible, onClose, studentList }) => {
         .catch((error) => {
           console.error(error);
           Alert.alert('Đã xảy ra lỗi khi điểm danh');
-          return;
+        })
+        .finally(() => {
+          setIsLoading(false); // Ẩn loading sau khi hoàn tất
         });
     }
   };
 
   const handleSaveResult = async () => {
-    // Ví dụ, gửi request lưu vào cơ sở dữ liệu
-    // Sau khi lưu thành công, có thể đóng modal hoặc hiển thị thông báo lưu thành công
     const attendanceTime = new Date().toISOString();
     
     await studentResults.forEach(async (studentResult) => {
@@ -138,7 +140,7 @@ const ImageModal = ({ visible, onClose, studentList }) => {
       });
     });
     Alert.alert('Đã lưu điểm danh thành công');
-    setShowSavePrompt(false); // Ẩn thông báo sau khi lưu thành công
+    setShowSavePrompt(false);
   };
 
   const toggleStudentSelection = (studentId) => {
@@ -211,6 +213,11 @@ const ImageModal = ({ visible, onClose, studentList }) => {
               </TouchableOpacity>
             </>
           )}
+          {isLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#2196F3" />
+            </View>
+          )}
         </View>
       </View>
       {showSavePrompt && (
@@ -250,7 +257,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     width: 300,
-    flex: 1, // Ensure modal content takes up entire space
+    flex: 1,
   },
   modalTitle: {
     fontSize: 20,
@@ -259,7 +266,7 @@ const styles = StyleSheet.create({
   resultModalContent: {
     alignItems: 'center',
     width: '100%',
-    flex: 1, // Ensure content area is flexible
+    flex: 1,
   },
   capturedImage: {
     width: 300,
@@ -268,7 +275,7 @@ const styles = StyleSheet.create({
   },
   flatList: {
     width: '100%',
-    flex: 1, // Ensure FlatList takes up entire container
+    flex: 1,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -330,7 +337,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     zIndex: 10,
-    elevation: 5, // For Android elevation
+    elevation: 5,
   },
   savePromptText: {
     fontSize: 18,
@@ -371,6 +378,17 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 5,
     paddingHorizontal: 10,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 10,
   },
 });
 

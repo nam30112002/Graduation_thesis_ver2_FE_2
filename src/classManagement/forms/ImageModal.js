@@ -57,6 +57,7 @@ const ImageModal = ({ visible, onClose, studentList }) => {
   };
 
   const confirmAttendance = () => {
+    console.log(studentResults);
     if (lectureNumber === '') {
       Alert.alert('Vui lòng nhập số buổi học');
       return;
@@ -111,8 +112,9 @@ const ImageModal = ({ visible, onClose, studentList }) => {
 
   const handleSaveResult = async () => {
     const attendanceTime = new Date().toISOString();
-    
-    await studentResults.forEach(async (studentResult) => {
+    const filteredStudentResults = studentResults.filter(studentResult => studentResult.result !== 'Không rõ');
+
+    await filteredStudentResults.forEach(async (studentResult) => {
       const data = JSON.stringify({
         "lectureNumber": lectureNumber,
         "attendanceTime": attendanceTime,
@@ -131,13 +133,13 @@ const ImageModal = ({ visible, onClose, studentList }) => {
         data: data
       };
       axios.request(config)
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-        Alert.alert('Đã xảy ra lỗi khi lưu điểm danh');
-      });
+        .then((response) => {
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+          Alert.alert('Đã xảy ra lỗi khi lưu điểm danh');
+        });
     });
     Alert.alert('Đã lưu điểm danh thành công');
     setShowSavePrompt(false);
@@ -225,11 +227,14 @@ const ImageModal = ({ visible, onClose, studentList }) => {
           <Text style={styles.savePromptText}>Kết quả điểm danh:</Text>
           <View>
             {studentResults.map((studentResult) => (
-              <Text key={studentResult.id} style={styles.studentResultText}>
-                {`${studentResult.name} (${studentResult.studentCode}): ${studentResult.result ? 'Đi' : 'Vắng'}`}
-              </Text>
+              studentResult.result !== 'Không rõ' && (
+                <Text key={studentResult.id} style={styles.studentResultText}>
+                  {`${studentResult.name} (${studentResult.studentCode}): ${studentResult.result ? 'Đi' : 'Vắng'}`}
+                </Text>
+              )
             ))}
           </View>
+
           <View style={styles.savePromptButtonRow}>
             <TouchableOpacity style={[styles.savePromptButton, { backgroundColor: '#2196F3' }]} onPress={handleSaveResult}>
               <Text style={styles.savePromptButtonText}>Lưu</Text>

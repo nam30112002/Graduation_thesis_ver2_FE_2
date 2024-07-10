@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Import the icon library
 
-import { getData } from '../Utility';
+import { getData,storeData } from '../Utility';
 import axios from 'axios';
 import { API_URL } from '@env';
 import AttendanceFormModal from './forms/AttendanceFormModal';
@@ -21,7 +21,8 @@ export default function StudentDetail() {
   const [studentNumberOfPresent, setStudentNumberOfPresent] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false); // State to control delete confirmation modal visibility
-
+  const [isDeleteAttendace, setIsDeleteAttendace] = useState(false); 
+  
   const fetchData = async () => {
     setStudentCode(await getData('currentStudentCode'));
     setStudentName(await getData('currentStudentName'));
@@ -75,7 +76,7 @@ export default function StudentDetail() {
   };
 
   // New function to handle attendance deletion
-  const handleDeleteAttendance = async (attendanceId) => {
+  const handleDeleteAttendance = async (attendanceId, isAttendance) => {
     Alert.alert(
       'Xác nhận xóa',
       'Bạn có chắc chắn muốn xóa buổi điểm danh này không?',
@@ -97,9 +98,14 @@ export default function StudentDetail() {
             };
 
             axios.request(config)
-              .then((response) => {
+              .then(async (response) => {
                 console.log(response.data);
-                fetchData(); // Refresh the list after deletion
+                if (isAttendance) {
+                  storeData('currentStudentNumberOfPresent', (parseInt(studentNumberOfPresent) - 1).toString());
+                } else {
+                  storeData('currentStudentNumberOfAbsent', (parseInt(studentNumberOfAbsent) - 1).toString());
+                }
+                await fetchData(); // Refresh the list after deletion
               })
               .catch((error) => {
                 console.log(error);
@@ -157,7 +163,7 @@ export default function StudentDetail() {
                   <Text style={styles.infoLabel}>Thời gian điểm danh:</Text>
                   <Text style={styles.infoValue}>{formatToView(convertTime(item.attendanceTime))}</Text>
                 </View>
-                <TouchableOpacity onPress={() => handleDeleteAttendance(item.id)}>
+                <TouchableOpacity onPress={() => handleDeleteAttendance(item.id, item.isAttendance)}>
                   <Icon name="trash" size={24} color="#FF0000" />
                 </TouchableOpacity>
               </View>
@@ -179,7 +185,14 @@ export default function StudentDetail() {
       <AttendanceFormModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        onSubmit={fetchData} // Refresh the data when a new attendance session is created
+        onSubmit={async (isAttendance) => {
+          if(isAttendance) {
+            storeData('currentStudentNumberOfPresent', (parseInt(studentNumberOfPresent) + 1).toString());
+          } else {
+            storeData('currentStudentNumberOfAbsent', (parseInt(studentNumberOfAbsent) + 1).toString());
+          }
+          await fetchData();
+        }} // Refresh the data when a new attendance session is created
       />
       <ConfirmDeleteStudentModal
         visible={deleteModalVisible}

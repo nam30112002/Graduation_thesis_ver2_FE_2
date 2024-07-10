@@ -69,7 +69,7 @@ export default function AttendanceFormModal({ visible, onClose, onSubmit }) {
     axios.request(config)
       .then((response) => {
         console.log(response.data);
-        onSubmit(); // Gọi hàm onSubmit để làm mới dữ liệu trong StudentDetail
+        onSubmit(isAttendance); // Gọi hàm onSubmit để làm mới dữ liệu trong StudentDetail
         onClose(); // Đóng modal
       })
       .catch((error) => {

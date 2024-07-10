@@ -216,7 +216,10 @@ export default function ClassDetail() {
       />
       <ImageModal
         visible={isCameraModalVisible}
-        onClose={() => setCameraModalVisible(false)}
+        onClose={() => {
+          setCameraModalVisible(false);
+          fetchData();
+        }}
         onSubmit={handlePhotoSubmit}
         studentList={studentList}
       />
